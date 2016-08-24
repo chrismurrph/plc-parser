@@ -39,5 +39,5 @@
 (defn x []
   (let [parser (insta/parser ebnf-2)
         res (parser input-3)]
-    (println parser)
+    ;(println parser)
     res))

@@ -1,4 +1,7 @@
-S = start-comment stars <inside-comment>
+S = start-comment stars <many-comments> stars end-comment
 start-comment = '('
-stars = '*' +
-<inside-comment> = '\n' +
+end-comment = ')'
+<stars> = <'*'> +
+<many-comments> = <inside-comment-1> +
+<inside-comment-1> = '\n' | '\r\n' | '\r'
+<inside-comment-2> = '\r?\n'
