@@ -1,5 +1,5 @@
 S = one-comment <newline> version-assign <newline> <newline> controller
-<controller> = "CONTROLLER" whitespace word whitespace <enclosure> <newline> "END_CONTROLLER"
+<controller> = "CONTROLLER" whitespace word whitespace <enclosure> <newline> whitespace word <newline> "END_CONTROLLER"
 enclosure = '(' any-assigns ')'
 <version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
 any-assigns = any-assign-comma * any-assign 

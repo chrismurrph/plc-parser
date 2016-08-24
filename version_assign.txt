@@ -11,7 +11,7 @@
 **********************************************)
 IE_VER := 2.11;
 
-CONTROLLER someword (ProcessorType := "1756-L71",
+CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         Major := 20,
                         CompatibilityMode := V20.01,
                         TimeSlice := 20,
@@ -29,4 +29,5 @@ CONTROLLER someword (ProcessorType := "1756-L71",
                         MatchProjectToController := No,
                         CanUseRPIFromProducer := No,
                         InhibitAutomaticFirmwareUpdate := 0)
+    AI15
 END_CONTROLLER
