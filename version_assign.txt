@@ -29,5 +29,6 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         MatchProjectToController := No,
                         CanUseRPIFromProducer := No,
                         InhibitAutomaticFirmwareUpdate := 0)
-    AI15
+        DATATYPE AI15
+        END_DATATYPE
 END_CONTROLLER
