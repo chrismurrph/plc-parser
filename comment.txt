@@ -1,0 +1,11 @@
+(*********************************************
+
+  Import-Export
+  Version   := RSLogix 5000 v20.04
+  Owner     := Illawarra Coal, South32
+  Exported  := Fri Jul 29 15:40:32 2016
+
+  Note:  File encoded in UTF-8.  Only edit file in a program 
+         which supports UTF-8 (like Notepad, not Wordpad).
+
+**********************************************)

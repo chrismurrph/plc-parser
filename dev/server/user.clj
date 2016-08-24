@@ -30,14 +30,14 @@
    A = 'a' +
    B ='b' +")
 
-(def ebnf-2 (slurp "myparser.bnf"))
+(def ebnf-2 (slurp "commentparser.bnf"))
 
 (def input-1 "aaaaabbbaaaabb")
 
 (def input-2 "(*********************************************\n\n  Import-Export\n  Version   := RSLogix 5000 v20.04\n  Owner     := Illawarra Coal, South32\n  Exported  := Fri Jul 29 15:40:32 2016\n\n  Note:  File encoded in UTF-8.  Only edit file in a program \n         which supports UTF-8 (like Notepad, not Wordpad).\n\n**********************************************)")
-
+(def input-3 (slurp "newline-comment.txt"))
 (defn x []
   (let [parser (insta/parser ebnf-2)
-        res (parser input-1)]
+        res (parser input-3)]
     (println parser)
     res))

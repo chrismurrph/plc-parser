@@ -1,0 +1,4 @@
+S = start-comment stars <inside-comment>
+start-comment = '('
+stars = '*' +
+<inside-comment> = '\n' +
