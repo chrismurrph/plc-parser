@@ -1,0 +1,28 @@
+S = one-comment newline version-assign newline newline controller
+<controller> = "CONTROLLER" whitespace variable whitespace enclosure newline "END_CONTROLLER"
+enclosure = '(' any-assigns ')'
+<version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
+any-assigns = any-assign-comma * any-assign 
+any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assignment
+any-assign-comma = any-assign ',' newline whitespace
+rhs-of-assignment = integer | float | string | version | base-number | "No"
+assign-op = ':='
+ending-op = ';'
+one-comment = start-comment stars <inside-comment> stars end-comment
+start-comment = '('
+end-comment = ')'
+<stars> = <'*'> +
+<inside-comment> = <allowed-inside-comment> +
+<whitespace> = #'\s+'
+variable = #'[a-zA-Z_]+'
+word = #'[.\\0-9a-zA-Z_-]+'
+string = quote word quote
+quote = '\"'
+integer = #'[0-9]+'
+float = #'[-+]?[0-9]*\.[0-9]+'
+version = "V" float
+punctuation-1 = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
+newline-simple = '\n' | '\r\n'
+newline = '\r' ? '\n'
+<allowed-inside-comment> = newline | whitespace | word | integer | punctuation-1
+base-number = integer '#' word

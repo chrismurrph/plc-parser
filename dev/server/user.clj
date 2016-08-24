@@ -5,12 +5,15 @@
 (defn r []
   (require 'user :reload))
 
-(def ebnf (slurp "commentparser.bnf"))
+(def ebnf (slurp "parser.bnf"))
 
-(def input (slurp "newline-comment.txt"))
+(def input (slurp "version_assign.txt"))
 
-(defn x []
+(defn parse []
   (let [parser (insta/parser ebnf)
         res (parser input)]
-    ;(println parser)
     res))
+
+(defn x []
+  (let [res (parse)]
+    (clojure.pprint/pprint res)))
