@@ -30,6 +30,6 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         CanUseRPIFromProducer := No,
                         InhibitAutomaticFirmwareUpdate := 0)
         DATATYPE somwword (FamilyType := NoFamily)
-              DINT RL_WD_Out (Description := "RedLion");
+              REAL AI[15];
         END_DATATYPE
 END_CONTROLLER
