@@ -1,6 +1,7 @@
 S = one-comment <newline> version-assign <newline> <newline> controller
 <controller> = "CONTROLLER" whitespace word whitespace <enclosure> <newline> whitespace data-type <newline> "END_CONTROLLER" <newline> *
-data-type = "DATATYPE" whitespace word whitespace enclosure <newline> whitespace data-fill <newline> whitespace "END_DATATYPE"
+data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
+data-fills = (whitespace data-fill <newline>) +
 data-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
 enclosure = '(' any-assigns ')'
 <version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
