@@ -12,11 +12,13 @@
 
 (defn parse-it []
   (let [parser (insta/parser ebnf)
-        res (insta/parses parser input)
-        _ (assert (seq res) (str "Empty list"))
-        choices (count res)
-        _ (assert (= choices 1))]
-    (first res)))
+        xs (insta/parses parser input)
+        num-choices (count xs)
+        res (case num-choices
+              1 (first xs)
+              0 (insta/parse parser input))
+        _ (assert res)]
+    res))
 
 (defn x []
   (let [res (parse-it)]
