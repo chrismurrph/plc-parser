@@ -1,8 +1,10 @@
 S = one-comment <newline> version-assign <newline> <newline> controller
-<controller> = "CONTROLLER" whitespace word whitespace <enclosure> <newline> whitespace data-type <newline> "END_CONTROLLER" <newline> *
+<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types "END_CONTROLLER" <newline> *
+data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
 data-fills = (whitespace data-fill <newline>) +
-data-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
+data-fill = raw-type whitespace variable whitespace ? bit-index ? enclosure ? ending-op
+bit-index = ':' integer whitespace
 enclosure = '(' any-assigns ')'
 <version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
 any-assigns = any-assign-comma * any-assign 
@@ -26,9 +28,9 @@ quote = '\"'
 integer = #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
 version = "V" float
-punctuation-1 = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
+punctuation = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
 newline-simple = '\n' | '\r\n'
 newline = <'\r' ? '\n'>
-<allowed-inside-comment> = newline | whitespace | word | integer | punctuation-1
+<allowed-inside-comment> = newline | whitespace | word | integer | punctuation
 base-number = integer '#' word
-raw-type = "DINT" | "REAL"
+raw-type = "DINT" | "REAL" | "SINT" | "BIT"

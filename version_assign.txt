@@ -29,10 +29,7 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         MatchProjectToController := No,
                         CanUseRPIFromProducer := No,
                         InhibitAutomaticFirmwareUpdate := 0)
-        DATATYPE AI15 (FamilyType := NoFamily)
-              REAL AI[15];
-              DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
-	      DINT RL_WD_IN (Description := "RedLion Comms Watchdog input");
-	      DINT Zero (Description := "Always a Zero Value");
-        END_DATATYPE
+        DATATYPE Always (FamilyType := NoFamily)
+		DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
+	END_DATATYPE
 END_CONTROLLER
