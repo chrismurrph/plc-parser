@@ -3,5 +3,8 @@ start-comment = '('
 end-comment = ')'
 <stars> = <'*'> +
 <many-comments> = <inside-comment-1> +
-<inside-comment-1> = '\n' | '\r\n' | '\r'
-<inside-comment-2> = '\r?\n'
+whitespace = #'\s+'
+word = #'[a-zA-Z]+'
+number = #'[0-9]+'
+punctuation-1 = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
+<inside-comment-1> = '\n' | '\r\n' | '\r' | whitespace | word | number | punctuation-1
