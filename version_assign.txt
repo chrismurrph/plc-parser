@@ -130,4 +130,38 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 		STR_OUT Buffer;
 	END_DATATYPE
 
+	MODULE Local (Parent := "Local",
+	              ParentModPortId := 1,
+	              CatalogNumber := "1756-L71",
+	              Vendor := 1,
+	              ProductType := 14,
+	              ProductCode := 92,
+	              Major := 20,
+	              Minor := 12,
+	              PortLabel := "RxBACKPLANE",
+	              ChassisSize := 10,
+	              Slot := 0,
+	              Mode := 2#0000_0000_0000_0001,
+	              CompatibleModule := 0,
+	              KeyMask := 2#0000_0000_0001_1111)
+	END_MODULE
+
+	MODULE AA9_TBS_Ethernet (Parent := "Local",
+	                         ParentModPortId := 1,
+	                         CatalogNumber := "1756-EN2T",
+	                         Vendor := 1,
+	                         ProductType := 12,
+	                         ProductCode := 166,
+	                         Major := 3,
+	                         Minor := 1,
+	                         PortLabel := "RxBACKPLANE",
+	                         Slot := 1,
+	                         NodeAddress := "10.20.45.72",
+	                         CommMethod := 536870914,
+	                         Mode := 2#0000_0000_0000_0000,
+	                         CompatibleModule := 1,
+	                         KeyMask := 2#0000_0000_0001_1111)
+                       ExtendedProp := [[[___<public><ConfigID>4325481</ConfigID></public>___]]]
+	END_MODULE
+
 END_CONTROLLER
