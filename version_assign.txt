@@ -60,8 +60,74 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 		BIT YearlyOneShot ZZZZZZZZZZAlways21 : 5 (Description := "Tic - at the Start of Each Calender Year");
 	END_DATATYPE
 
+	DATATYPE READ_RESP_STR (FamilyType := NoFamily)
+		SockAddr FromAddr;
+		STR_4096 Buf;
+	END_DATATYPE
+
+	DATATYPE REQUEST_PARAMETERS (FamilyType := NoFamily)
+		DINT Type (Description := "1 - TCP 2- UPD");
+		SockAddr Addr;
+	END_DATATYPE
+
+	DATATYPE SCADA_R_Gas (FamilyType := NoFamily)
+		Gas_Alm Alm;
+		Gas_Stat Stat;
+	END_DATATYPE
+
+	DATATYPE SCADA_R_Sys (Description := "Tube Bundle System Alarms",
+	                      FamilyType := NoFamily)
+		BOOL Alm[32];
+	END_DATATYPE
+
+	DATATYPE SockAddr (FamilyType := NoFamily)
+		INT Family (Description := "Address Family Must be 2");
+		INT Port (Description := "Port Number");
+		DINT Addr (Description := "IP Address");
+	END_DATATYPE
+
+	DATATYPE String_1 (FamilyType := StringFamily)
+		DINT LEN;
+		SINT DATA[1] (Radix := ASCII);
+	END_DATATYPE
+
+	DATATYPE STR_462 (FamilyType := StringFamily)
+		DINT LEN;
+		SINT DATA[462] (Radix := ASCII);
+	END_DATATYPE
+
+	DATATYPE STR_OUT (FamilyType := NoFamily)
+		DINT LEN;
+		SINT BUFF[480];
+	END_DATATYPE
+
+	DATATYPE TIME_OF_PLC (FamilyType := NoFamily)
+		DINT Year (Description := "PLC Wallclock Year Value");
+		DINT Month (Description := "PLC Wallclock Month Value");
+		DINT Day (Description := "PLC Wallclock Day Value");
+		DINT Hour (Description := "PLC Wallclock Hour Value");
+		DINT Minute (Description := "PLC Wallclock Minute Value");
+		DINT Second (Description := "PLC Wallclock Seconds Value");
+		DINT uSec (Description := "PLC Wallclock Microseconds Value");
+		DINT Completely_Written (Description := "Will always be 1 except if it is not yet ready to be read");
+	END_DATATYPE
+
 	DATATYPE DI32 (FamilyType := NoFamily)
 		DINT DI;
+	END_DATATYPE
+
+	DATATYPE Tube_Seq_Item (Description := "Tube Sequence Item goes in an array",
+	                        FamilyType := NoFamily)
+		DINT Tube_Num (Description := "Physical Tube Number");
+		DINT Duration (Description := "Time in seconds between switches");
+		SINT ZZZZZZZZZZTube_Seq_I2 (Hidden := 1);
+		BIT Enabled ZZZZZZZZZZTube_Seq_I2 : 0 (Description := "Able to be switched to");
+	END_DATATYPE
+
+	DATATYPE WRT_DATA (FamilyType := NoFamily)
+		DINT Timeout;
+		SockAddr ToAddr;
+		STR_OUT Buffer;
 	END_DATATYPE
 
 END_CONTROLLER

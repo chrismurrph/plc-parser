@@ -3,15 +3,16 @@ S = one-comment <newline> version-assign <newline> <newline> controller
 data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
 data-fills = (whitespace data-fill <newline>) +
-data-fill = normal-fill | bit-fill
+data-fill = normal-fill | bit-fill | custom-fill
 normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
 bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer whitespace enclosure ? ending-op
+custom-fill = custom-type whitespace variable ending-op
 enclosure = '(' any-assigns ')'
 <version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
 any-assigns = any-assign-comma * any-assign 
 any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assignment
 any-assign-comma = any-assign ',' newline whitespace
-rhs-of-assignment = integer | float | string | version | base-number | "No" | "NoFamily"
+rhs-of-assignment = integer | float | string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
 assign-op = ':='
 ending-op = ';'
 one-comment = <start-comment> stars <inside-comment> stars <end-comment>
@@ -34,4 +35,6 @@ punctuation = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
 newline = <'\r' ? '\n'>
 <allowed-inside-comment> = newline | whitespace | word | integer | punctuation
 base-number = integer '#' word
-raw-type = "DINT" | "REAL" | "SINT" | "BIT"
+raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT"
+native-type = raw-type | "BIT"
+custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat"
