@@ -2,8 +2,14 @@ S = one-comment <newline> version-assign <newline> <newline> controller
 <controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules <newline> "END_CONTROLLER" <newline> *
 data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
+connection = "CONNECTION" whitespace word whitespace enclosure <newline> 
+  whitespace "END_CONNECTION"
 modules = (<newline> whitespace module <newline>) +
-module = "MODULE" whitespace word whitespace enclosure <newline> (whitespace extended-prop-assign <newline>) ? whitespace "END_MODULE"
+module = "MODULE" whitespace word whitespace enclosure <newline> 
+  (whitespace extended-prop-assign <newline>) ? 
+  (whitespace config-data-assign <newline>) ? 
+  (whitespace connection <newline>) ? 
+  whitespace "END_MODULE"
 data-fills = (whitespace data-fill <newline>) +
 data-fill = normal-fill | bit-fill | custom-fill
 normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
@@ -16,7 +22,11 @@ any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
 any-assign-comma = any-assign ',' newline whitespace
 rhs-of-assign = integer | float | string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
 triple-bracket-rhs-of-assign = "[[[___" xml-word "___]]]"
-extended-prop-assign = "ExtendedProp"  <whitespace> assign-op <whitespace> triple-bracket-rhs-of-assign
+engineering-float = float 'e+' integer
+config-data-number = integer | engineering-float | config-data-rhs-of-assign 
+config-data-rhs-of-assign = '[' config-data-number (',' config-data-number (newline whitespace) ? ) * ']'
+extended-prop-assign = "ExtendedProp" <whitespace> assign-op <whitespace> triple-bracket-rhs-of-assign
+config-data-assign = "ConfigData" <whitespace> assign-op <whitespace> config-data-rhs-of-assign ending-op
 assign-op = ':='
 ending-op = ';'
 one-comment = <start-comment> stars <inside-comment> stars <end-comment>
@@ -33,7 +43,7 @@ xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
 string = quote one-or-more-words quote
 quote = '\"'
-integer = #'[0-9]+'
+integer = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
 version = "V" float
 punctuation = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
