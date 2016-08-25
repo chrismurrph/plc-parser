@@ -31,5 +31,37 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         InhibitAutomaticFirmwareUpdate := 0)
         DATATYPE Always (FamilyType := NoFamily)
 		DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
+		DINT RL_WD_IN (Description := "RedLion Comms Watchdog input");
+		DINT Zero (Description := "Always a Zero Value");
+		SINT ZZZZZZZZZZAlways3 (Hidden := 1);
+                BIT On ZZZZZZZZZZAlways3 : 0 (Description := "Always On or True");
+		BIT Off ZZZZZZZZZZAlways3 : 1 (Description := "Always Off or False");
+                BIT Tic_0_5secs ZZZZZZZZZZAlways3 : 2 (Description := "Half Second Tic");
+		BIT Tic_1sec ZZZZZZZZZZAlways3 : 3 (Description := "One Second Tic");
+		BIT Tic_2sec ZZZZZZZZZZAlways3 : 4 (Description := "Two Second Tic");
+		BIT Tic_5sec ZZZZZZZZZZAlways3 : 5 (Description := "Five Second Tic");
+		BIT Tic_10sec ZZZZZZZZZZAlways3 : 6 (Description := "Ten Second Tic");
+		BIT Tic_30sec ZZZZZZZZZZAlways3 : 7 (Description := "Thirty Second Tic");
+		SINT ZZZZZZZZZZAlways12 (Hidden := 1);
+		BIT Tic_1min ZZZZZZZZZZAlways12 : 0 (Description := "One Minute Tic");
+		BIT Tic_15min ZZZZZZZZZZAlways12 : 1 (Description := "Fifteen Minute Tic");
+		BIT Tic_30min ZZZZZZZZZZAlways12 : 2 (Description := "Thirty Minute Tic");
+		BIT Tic_1hr ZZZZZZZZZZAlways12 : 3 (Description := "One Hour Tic");
+		BIT Flash_0_5sec ZZZZZZZZZZAlways12 : 4 (Description := "Fash Bit 0.5 second On 0.5 second Off");
+		BIT Flash_1sec ZZZZZZZZZZAlways12 : 5 (Description := "Fash Bit 1 second On 1 second Off");
+		BIT Flash_2sec ZZZZZZZZZZAlways12 : 6 (Description := "Flash Bit 2 seconds On 2 seconds Off");
+		BIT PowerOn_5sec ZZZZZZZZZZAlways12 : 7 (Description := "Power On Delay - 5 seconds");
+		SINT ZZZZZZZZZZAlways21 (Hidden := 1);
+		BIT PowerOn_10secs ZZZZZZZZZZAlways21 : 0 (Description := "Power On Delay - 10 seconds");
+		BIT PowerOn_1min ZZZZZZZZZZAlways21 : 1 (Description := "Power On Delay - 1 minute");
+		BIT PowerOn_30min ZZZZZZZZZZAlways21 : 2 (Description := "Power On Delay - 30 minutes");
+		BIT DailyOneshot ZZZZZZZZZZAlways21 : 3 (Description := "Tic - Once a Day at Midnight");
+		BIT MonthlyOneShot ZZZZZZZZZZAlways21 : 4 (Description := "Tic - at the Start of Each Calender Month");
+		BIT YearlyOneShot ZZZZZZZZZZAlways21 : 5 (Description := "Tic - at the Start of Each Calender Year");
 	END_DATATYPE
+
+	DATATYPE DI32 (FamilyType := NoFamily)
+		DINT DI;
+	END_DATATYPE
+
 END_CONTROLLER

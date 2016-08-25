@@ -14,6 +14,7 @@
   (let [parser (insta/parser ebnf)
         xs (insta/parses parser input)
         num-choices (count xs)
+        _ (when (zero? num-choices) (println "insta/parses is no good but can be corrected"))
         res (case num-choices
               1 (first xs)
               0 (insta/parse parser input))
