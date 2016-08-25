@@ -277,4 +277,8 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 
 	END_MODULE
 
+	TAG
+                A1_C5PLUS_RAW : REAL (RADIX := Float) := 1.75711100e-002;
+        END_TAG
+
 END_CONTROLLER

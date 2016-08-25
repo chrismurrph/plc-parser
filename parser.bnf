@@ -1,5 +1,5 @@
 S = one-comment <newline> version-assign <newline> <newline> controller
-<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules <newline> "END_CONTROLLER" <newline> *
+<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules whitespace tag <newline> "END_CONTROLLER" <newline> *
 data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
 connection = "CONNECTION" whitespace word whitespace enclosure <newline> connection-assigns whitespace "END_CONNECTION"
@@ -9,6 +9,9 @@ module = "MODULE" whitespace word whitespace enclosure <newline>
   (whitespace config-data-assign <newline>) ? 
   (whitespace connection <newline> <newline>) ?
   whitespace "END_MODULE"
+tag-definition = variable whitespace ':' whitespace raw-type whitespace radix-enclosure whitespace assign-op whitespace engineering-float ending-op
+tag-definitions = (tag-definition <newline> <whitespace>) +
+tag = "TAG" <newline whitespace> tag-definitions "END_TAG" <newline>
 connection-assigns = (whitespace connection-assign <newline>) +
 connection-assign = input-data-assign | input-force-data-assign | output-data-assign | output-force-data-assign
 data-fills = (whitespace data-fill <newline>) +
@@ -17,6 +20,8 @@ normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
 bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer whitespace enclosure ? ending-op
 custom-fill = custom-type whitespace variable ending-op
 enclosure = '(' any-assigns ')'
+radix-assign = "RADIX" whitespace assign-op whitespace radix-type
+radix-enclosure = '(' radix-assign ')'
 comment-assigns = leading-comment-assign * comment-assign
 comment-enclosure = '(' comment-assigns ')'
 comment-variable = "COMMENT." variable
@@ -65,3 +70,4 @@ base-number = integer '#' word
 raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT"
 native-type = raw-type | "BIT"
 custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat"
+radix-type = "Float"
