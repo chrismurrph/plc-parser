@@ -23,7 +23,7 @@
               ;(> num-choices 1) xs
               (= num-choices 1) (first xs)
               (zero? num-choices) (insta/parse my-parser input))
-        _ (assert res)]
+        _ (assert res (str "No result. Num of choices is: " num-choices))]
     [msg res]))
 
 (defn x []
