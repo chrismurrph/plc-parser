@@ -1,7 +1,42 @@
 
-One rung, they run into each other:
+One rung, they run into each other.
+Notice comma where 2 args required
 
 MOV(SMRTGS_W_Tubes_Seq_Buffer[1].Tube_Num,Tubes_Seq[1].Tube_Num)
 MOV(SMRTGS_W_Tubes_Seq_Buffer[1].Duration,Tubes_Seq[1].Duration)
 XIC(SMRTGS_W_Tubes_Seq_Buffer[1].Enabled)
 OTE(Tubes_Seq[1].Enabled);
+
+Brackets means a branch
+Space comma means a branch level
+In branch level they don't run into each other but are separated by a space
+Space before closing bracket to finish off a branch
+After closing bracket just runs into
+
+[LES(CONSTANT_Fast_Holding_Dead_Time,2000) ,
+ LES(CONSTANT_Dead_Time,2000) ,
+ LES(CONSTANT_Fast_Holding_Duration,4000) ,
+ GRT(CONSTANT_Fast_Holding_Duration,7000) ,
+ SUB(CONSTANT_Fast_Holding_Duration,CONSTANT_Fast_Holding_Dead_Time,TEMP_Fast_Holding_Sampling) LES(TEMP_Fast_Holding_Sampling,2000) ,
+ NEQ(Tubes_Seq[0].Tube_Num,0) ,
+ NEQ(Tubes_Seq[0].Duration,0) ,
+ XIC(Tubes_Seq[0].Enabled) ,
+ EQU(Tubes_Seq[1].Tube_Num,0) ,
+ EQU(Tubes_Seq[1].Duration,0) ,
+ XIO(Tubes_Seq[1].Enabled) ]
+OTE(TEMP_Failed_Initialisation);
+
+Rung( 7, Branch("fifteen",
+        BranchLevel(LES(c.CONSTANT_Fast_Holding_Dead_Time, 2000)),
+        BranchLevel(LES(c.CONSTANT_Dead_Time, 2000)),
+        BranchLevel(LES(c.CONSTANT_Fast_Holding_Duration, 4000)),
+        BranchLevel(GRT(c.CONSTANT_Fast_Holding_Duration, 7000)),
+        BranchLevel(SUB(c.CONSTANT_Fast_Holding_Duration, c.CONSTANT_Fast_Holding_Dead_Time, p.TEMP_Fast_Holding_Sampling),
+          LES( p.TEMP_Fast_Holding_Sampling, 2000)),
+        BranchLevel(NEQ( p.Tubes_Seq(0).Tube_Num, 0)),
+        BranchLevel(NEQ( p.Tubes_Seq(0).Duration, 0)),
+        BranchLevel(NO( p.Tubes_Seq(0).Enabled)),
+        BranchLevel(EQU( p.Tubes_Seq(1).Tube_Num, 0)),
+        BranchLevel(EQU( p.Tubes_Seq(1).Duration, 0)),
+        BranchLevel(NC( p.Tubes_Seq(1).Enabled))
+      ), OTE( p.TEMP_Failed_Initialisation)),
