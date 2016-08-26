@@ -10,7 +10,7 @@ module = "MODULE" whitespace word whitespace enclosure <newline>
   (whitespace connection <newline> <newline>) ?
   whitespace "END_MODULE"
 routines = (whitespace routine <newline>) +
-rung-comment = "RC:" whitespace wordy-string  
+rung-comment = "RC:" whitespace anything-string ending-op
 rung = "N:"
 routine = "ROUTINE" whitespace word whitespace enclosure <newline>
   (whitespace (rung-comment | rung) <newline>) + 
@@ -42,7 +42,7 @@ leading-comment-assign = comment-assign ',' newline <whitespace>
 any-assigns = any-assign-comma * any-assign 
 any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
 any-assign-comma = any-assign ',' newline whitespace
-rhs-of-assign = integer | float | wordy-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
+rhs-of-assign = integer | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
 triple-bracket-rhs-of-assign = "[[[___" xml-word "___]]]"
 engineering-float = float ('e+' | 'e-') integer
 base-two-number = "2#" integer
@@ -69,10 +69,10 @@ variable = #'[0-9a-zA-Z_]+' array-dimension ?
 bit-variable = variable
 array-dimension = <'['> integer <']'>
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
-one-or-more-anythings = (anything-word whitespace) * anything-word
+one-or-more-anythings = (anything-word whitespace) * anything-word whitespace ?
 wordy-string = quote one-or-more-words quote
 anything-string = quote one-or-more-anythings quote
 quote = '\"'
