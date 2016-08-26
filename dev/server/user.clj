@@ -8,7 +8,7 @@
 
 (def ebnf (slurp "parser.bnf"))
 
-(def input (slurp "version_assign.txt"))
+(def input (slurp "version_assign_2.txt"))
 
 (defn parse-it []
   (let [my-parser (insta/parser ebnf)

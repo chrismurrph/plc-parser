@@ -1,0 +1,138 @@
+(*********************************************
+
+  Import-Export
+  Version   := RSLogix 5000 v20.04
+  Owner     := Illawarra Coal, South32
+  Exported  := Fri Jul 29 15:40:32 2016
+
+  Note:  File encoded in UTF-8.  Only edit file in a program 
+         which supports UTF-8 (like Notepad, not Wordpad).
+
+**********************************************)
+IE_VER := 2.11;
+
+CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
+                        Major := 20,
+                        CompatibilityMode := V20.01,
+                        TimeSlice := 20,
+                        ShareUnusedTimeSlice := 1,
+                        CommPath := "10_20_45_X\10.20.45.72\Backplane\0",
+                        RedundancyEnabled := 0,
+                        KeepTestEditsOnSwitchOver := 0,
+                        DataTablePadPercentage := 50,
+                        SecurityCode := 0,
+                        ChangesToDetect := 16#ffff_ffff_ffff_ffff,
+                        SFCExecutionControl := "CurrentActive",
+                        SFCRestartPosition := "MostRecent",
+                        SFCLastScan := "DontScan",
+                        SerialNumber := 16#00a6_f28a,
+                        MatchProjectToController := No,
+                        CanUseRPIFromProducer := No,
+                        InhibitAutomaticFirmwareUpdate := 0)
+        DATATYPE Always (FamilyType := NoFamily)
+		DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
+		DINT RL_WD_IN (Description := "RedLion Comms Watchdog input");
+		DINT Zero (Description := "Always a Zero Value");
+		SINT ZZZZZZZZZZAlways3 (Hidden := 1);
+                BIT On ZZZZZZZZZZAlways3 : 0 (Description := "Always On or True");
+		BIT Off ZZZZZZZZZZAlways3 : 1 (Description := "Always Off or False");
+                BIT Tic_0_5secs ZZZZZZZZZZAlways3 : 2 (Description := "Half Second Tic");
+		BIT Tic_1sec ZZZZZZZZZZAlways3 : 3 (Description := "One Second Tic");
+		BIT Tic_2sec ZZZZZZZZZZAlways3 : 4 (Description := "Two Second Tic");
+		BIT Tic_5sec ZZZZZZZZZZAlways3 : 5 (Description := "Five Second Tic");
+		BIT Tic_10sec ZZZZZZZZZZAlways3 : 6 (Description := "Ten Second Tic");
+		BIT Tic_30sec ZZZZZZZZZZAlways3 : 7 (Description := "Thirty Second Tic");
+		SINT ZZZZZZZZZZAlways12 (Hidden := 1);
+		BIT Tic_1min ZZZZZZZZZZAlways12 : 0 (Description := "One Minute Tic");
+		BIT Tic_15min ZZZZZZZZZZAlways12 : 1 (Description := "Fifteen Minute Tic");
+		BIT Tic_30min ZZZZZZZZZZAlways12 : 2 (Description := "Thirty Minute Tic");
+		BIT Tic_1hr ZZZZZZZZZZAlways12 : 3 (Description := "One Hour Tic");
+		BIT Flash_0_5sec ZZZZZZZZZZAlways12 : 4 (Description := "Fash Bit 0.5 second On 0.5 second Off");
+		BIT Flash_1sec ZZZZZZZZZZAlways12 : 5 (Description := "Fash Bit 1 second On 1 second Off");
+		BIT Flash_2sec ZZZZZZZZZZAlways12 : 6 (Description := "Flash Bit 2 seconds On 2 seconds Off");
+		BIT PowerOn_5sec ZZZZZZZZZZAlways12 : 7 (Description := "Power On Delay - 5 seconds");
+		SINT ZZZZZZZZZZAlways21 (Hidden := 1);
+		BIT PowerOn_10secs ZZZZZZZZZZAlways21 : 0 (Description := "Power On Delay - 10 seconds");
+		BIT PowerOn_1min ZZZZZZZZZZAlways21 : 1 (Description := "Power On Delay - 1 minute");
+		BIT PowerOn_30min ZZZZZZZZZZAlways21 : 2 (Description := "Power On Delay - 30 minutes");
+		BIT DailyOneshot ZZZZZZZZZZAlways21 : 3 (Description := "Tic - Once a Day at Midnight");
+		BIT MonthlyOneShot ZZZZZZZZZZAlways21 : 4 (Description := "Tic - at the Start of Each Calender Month");
+		BIT YearlyOneShot ZZZZZZZZZZAlways21 : 5 (Description := "Tic - at the Start of Each Calender Year");
+	END_DATATYPE
+
+	MODULE Local (Parent := "Local",
+	              ParentModPortId := 1,
+	              CatalogNumber := "1756-L71",
+	              Vendor := 1,
+	              ProductType := 14,
+	              ProductCode := 92,
+	              Major := 20,
+	              Minor := 12,
+	              PortLabel := "RxBACKPLANE",
+	              ChassisSize := 10,
+	              Slot := 0,
+	              Mode := 2#0000_0000_0000_0001,
+	              CompatibleModule := 0,
+	              KeyMask := 2#0000_0000_0001_1111)
+	END_MODULE
+
+	MODULE AA9_TBS_AI3 (Parent := "Local",
+	                    ParentModPortId := 1,
+	                    CatalogNumber := "1756-IF16",
+	                    Vendor := 1,
+	                    ProductType := 10,
+	                    ProductCode := 6,
+	                    Major := 1,
+	                    Minor := 5,
+	                    PortLabel := "RxBACKPLANE",
+	                    Slot := 7,
+	                    CommMethod := 536870914,
+	                    ConfigMethod := 8388610,
+	                    Mode := 2#0000_0000_0000_0000,
+	                    CompatibleModule := 1,
+	                    KeyMask := 2#0000_0000_0001_1111)
+			ConfigData  := [392,40,1,2,100,[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000
+		],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000],[0,3,0
+		,4.00000000e+000,2.00000000e+001,0.00000000e+000,1.00000000e+001,0.00000000e+000],[0,3,0,4.00000000e+000
+		,2.00000000e+001,0.00000000e+000,1.00000000e+002,0.00000000e+000],[0,3,0,4.00000000e+000,2.00000000e+001
+		,4.00000000e+000,2.00000000e+001,0.00000000e+000],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000
+		,2.00000000e+001,0.00000000e+000],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001
+		,0.00000000e+000],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000
+		],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000],[0,0,0
+		,-1.00000000e+001,1.00000000e+001,-1.00000000e+001,1.00000000e+001,0.00000000e+000],[0,0,0,-1.00000000e+001
+		,1.00000000e+001,-1.00000000e+001,1.00000000e+001,0.00000000e+000],[0,0,0,-1.00000000e+001,1.00000000e+001
+		,-1.00000000e+001,1.00000000e+001,0.00000000e+000],[0,0,0,-1.00000000e+001,1.00000000e+001,-1.00000000e+001
+		,1.00000000e+001,0.00000000e+000],[0,0,0,-1.00000000e+001,1.00000000e+001,-1.00000000e+001,1.00000000e+001
+		,0.00000000e+000],[0,0,0,-1.00000000e+001,1.00000000e+001,-1.00000000e+001,1.00000000e+001,0.00000000e+000
+		],[0,0,0,-1.00000000e+001,1.00000000e+001,-1.00000000e+001,1.00000000e+001,0.00000000e+000]];
+			CONNECTION FloatSingleEndedNoAlm (Rate := 100000,
+			                                  EventID := 0)
+					InputData (COMMENT.CH0DATA := "Gas Guard CH4 Sensor 4-20mA",
+            COMMENT.CH1DATA := "Gas Guard O2 Sensor 4-20mA",
+            COMMENT.CH2DATA := "Mass Flow Controller 4-20mA",
+            COMMENT.CH3DATA := "Servomex O2 cell 4-20mA") := [496,-32768,0,0,0,0,64,64,64,64,64,0,0,0,0,0,0,0,4.04768562e+000,1.74894047e+001,4.92462158e-001,2.00037231e+001
+		,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,-1.25125889e-003
+		,-9.38444166e-004,-1.25125889e-003,-1.25125889e-003,-1.25125889e-003,-1.25125889e-003,-1.87688833e-003
+		,4648];
+					InputForceData := [-16,1,0,-128,0,0,0,0,64,64,64,64,64,0,0,0,0,0,0,0,-92,-122,-127,64,77,-22,-117,65,0,36,-4,62,-96,7,-96,65,0,0,0,0,0,0,0,0,0,0,0
+		,0,0,0,0,0,0,0,0,0,72,1,-92,-70,-20,1,118,-70,72,1,-92,-70,72,1,-92,-70,72,1,-92,-70,72,1,-92,-70,-20,1,-10,-70,40,18,36,-70
+		,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+		,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+			END_CONNECTION
+
+	END_MODULE
+
+	TAG
+                A1_C5PLUS_RAW : REAL (RADIX := Float) := 1.75711100e-002;
+        END_TAG
+
+        ROUTINE CheckTransCode (Description := "Checks for a match transaction code agains the transaction definitions for a connection.$N")
+                RC: "Each rung in this routine handles a connection.  A comparison is done of the incoming ID and the ID of the last outgoing request made.  If a match is found, the TransState, LastError and TransComplete are set to 0 in the transaction. Finally the TransFound flag is set to indicate to the calling routing (Sub_Check_Write_Reply) that a match has been found.  Variable RW_Select is the Connection pointer, TransactionPtr is the Transaction pointer,  and both are set before this routine is called. ";
+                N: EQU(RW_Select,0)XIC(MBTU_Transactions_00[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_00[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_00[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_00[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_00[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_00[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_00[TransactionPtr].TransComplete) ,OTL(TransFound) ];
+                N: EQU(RW_Select,1)XIC(MBTU_Transactions_01[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_01[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_01[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_01[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_01[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_01[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_01[TransactionPtr].TransComplete) ,OTL(TransFound) ];
+                N: EQU(RW_Select,2)XIC(MBTU_Transactions_02[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_02[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_02[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_02[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_02[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_02[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_02[TransactionPtr].TransComplete) ,OTL(TransFound) ];
+                N: EQU(RW_Select,3)XIC(MBTU_Transactions_03[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_03[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_03[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_03[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_03[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_03[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_03[TransactionPtr].TransComplete) ,OTL(TransFound) ];                
+        END_ROUTINE
+
+END_CONTROLLER

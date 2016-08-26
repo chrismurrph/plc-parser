@@ -1,5 +1,5 @@
 S = one-comment <newline> version-assign <newline> <newline> controller
-<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules whitespace tag <newline> "END_CONTROLLER" <newline> *
+<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules whitespace tag <newline> routines <newline> "END_CONTROLLER" <newline> *
 data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
 connection = "CONNECTION" whitespace word whitespace enclosure <newline> connection-assigns whitespace "END_CONNECTION"
@@ -9,6 +9,12 @@ module = "MODULE" whitespace word whitespace enclosure <newline>
   (whitespace config-data-assign <newline>) ? 
   (whitespace connection <newline> <newline>) ?
   whitespace "END_MODULE"
+routines = (whitespace routine <newline>) +
+rung-comment = "RC:" whitespace wordy-string  
+rung = "N:"
+routine = "ROUTINE" whitespace word whitespace enclosure <newline>
+  (whitespace (rung-comment | rung) <newline>) + 
+  whitespace "END_MODULE" 
 tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
 tag-definitions = (tag-definition <newline> <whitespace>) +
 tag = "TAG" <newline whitespace> tag-definitions "END_TAG" <newline>
