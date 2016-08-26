@@ -279,6 +279,18 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 
 	TAG
                 A1_C5PLUS_RAW : REAL (RADIX := Float) := 1.75711100e-002;
+                A1_CARBON_DIOXIDE : REAL (Description := "Carbon Dioxide reading from Precisive Analyser 1",
+		            RADIX := Float) := 3.02316099e-001;
+                A1_Diagnostics : REAL[8] (RADIX := Float) := [6.68211594e+001,9.90948200e-001,5.99619980e+001,0.00000000e+000,0.00000000e+000,0.00000000e+000
+				,0.00000000e+000,0.00000000e+000];
+                A1_Discrete_Inputs : BOOL[32] (Description := "Precisive CH4-CO2 Analyser",
+                            COMMENT[0] := "Precisive CH4-CO2 Analyser Status: On = FAULT",
+                            COMMENT[1] := "Precisive CH4-CO2 Analyser Gas Cell Low Temp: ON = HIGH",
+                            COMMENT[2] := "Precisive CH4-CO2 Analyser Gas Cell High Temp: ON = LOW",
+                            COMMENT[3] := "Precisive CH4-CO2 Analyser Purge Status: On = PURGING",
+                            COMMENT[4] := "Precisive CH4-CO2 Analyser Re-zeroing Status: On = RE_ZEROING",
+                            RADIX := Decimal) := [2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0];
         END_TAG
 
 END_CONTROLLER
