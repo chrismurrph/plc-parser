@@ -1,0 +1,7 @@
+
+One rung, they run into each other:
+
+MOV(SMRTGS_W_Tubes_Seq_Buffer[1].Tube_Num,Tubes_Seq[1].Tube_Num)
+MOV(SMRTGS_W_Tubes_Seq_Buffer[1].Duration,Tubes_Seq[1].Duration)
+XIC(SMRTGS_W_Tubes_Seq_Buffer[1].Enabled)
+OTE(Tubes_Seq[1].Enabled);
