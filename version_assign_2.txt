@@ -136,12 +136,12 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
         END_ROUTINE
 
 			ROUTINE Alarms_Flow
-					RC: "Rung monitors all alarms generated from Sampling System$N"
+                                        RC: "Rung monitors all alarms generated from Sampling System$N"
 					    "============================================$N"
 					    "$N"
-					    "";
-					N: XIO(SCADA_R_Gas.Alm.A01)XIO(SCADA_R_Gas.Alm.A02)XIO(SCADA_R_Gas.Alm.A03)XIO(SCADA_R_Gas.Alm.A04)XIO(SCADA_R_Gas.Alm.A05)XIO(SCADA_R_Gas.Alm.A06)XIO(SCADA_R_Gas.Alm.A07)XIO(SCADA_R_Gas.Alm.A08)XIO(SCADA_R_Gas.Alm.A09)XIO(SCADA_R_Gas.Alm.A10)XIO(SCADA_R_Gas.Alm.A11)XIO(SCADA_R_Gas.Alm.A12)XIO(SCADA_R_Gas.Alm.A13)XIO(SCADA_R_Gas.Alm.A14)XIO(SCADA_R_Gas.Alm.A15)XIO(SCADA_R_Gas.Alm.A16)XIO(SCADA_R_Gas.Alm.A17)XIO(SCADA_R_Gas.Alm.A18)XIO(SCADA_R_Gas.Alm.A19)XIO(SCADA_R_Gas.Alm.A20)XIO(SCADA_R_Gas.Alm.A21)XIO(SCADA_R_Gas.Alm.A22)XIO(SCADA_R_Gas.Alm.A23)XIO(SCADA_R_Gas.Alm.A24)XIO(SCADA_R_Gas.Alm.A25)XIO(SCADA_R_Gas.Alm.A26)XIO(SCADA_R_Gas.Alm.A27)XIO(SCADA_R_Gas.Alm.A28)XIO(SCADA_R_Gas.Alm.A29)XIO(SCADA_R_Gas.Alm.A30)XIO(SCADA_R_Gas.Alm.A31)XIO(SCADA_R_Gas.Alm.A32)OTE(SCADA_R_Gas.Stat.Alms_Hlthy);
-					N: XIC(Global_Logic[0])FLL(0,SCADA_R_Gas.Alm,1);
+                                            "";
+                                        N: XIO(SCADA_R_Gas.Alm.A01)XIO(SCADA_R_Gas.Alm.A02)XIO(SCADA_R_Gas.Alm.A03)XIO(SCADA_R_Gas.Alm.A04)XIO(SCADA_R_Gas.Alm.A05)XIO(SCADA_R_Gas.Alm.A06)XIO(SCADA_R_Gas.Alm.A07)XIO(SCADA_R_Gas.Alm.A08)XIO(SCADA_R_Gas.Alm.A09)XIO(SCADA_R_Gas.Alm.A10)XIO(SCADA_R_Gas.Alm.A11)XIO(SCADA_R_Gas.Alm.A12)XIO(SCADA_R_Gas.Alm.A13)XIO(SCADA_R_Gas.Alm.A14)XIO(SCADA_R_Gas.Alm.A15)XIO(SCADA_R_Gas.Alm.A16)XIO(SCADA_R_Gas.Alm.A17)XIO(SCADA_R_Gas.Alm.A18)XIO(SCADA_R_Gas.Alm.A19)XIO(SCADA_R_Gas.Alm.A20)XIO(SCADA_R_Gas.Alm.A21)XIO(SCADA_R_Gas.Alm.A22)XIO(SCADA_R_Gas.Alm.A23)XIO(SCADA_R_Gas.Alm.A24)XIO(SCADA_R_Gas.Alm.A25)XIO(SCADA_R_Gas.Alm.A26)XIO(SCADA_R_Gas.Alm.A27)XIO(SCADA_R_Gas.Alm.A28)XIO(SCADA_R_Gas.Alm.A29)XIO(SCADA_R_Gas.Alm.A30)XIO(SCADA_R_Gas.Alm.A31)XIO(SCADA_R_Gas.Alm.A32)OTE(SCADA_R_Gas.Stat.Alms_Hlthy);
+                                        N: XIC(Global_Logic[0])FLL(0,SCADA_R_Gas.Alm,1);
 					RC: "Detect when there has been a change of sample solenoid$N"
 					    "==============================================";
 					N: NEQ(SMRTGS_W_Switched_To_Tube_Num,Tube_No_Last_Scan)[OTE(Local_Logic[2]) ,MOV(SMRTGS_W_Switched_To_Tube_Num,Tube_No_Last_Scan) ];
@@ -152,10 +152,10 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 					    "===============================================$N"
 					    "$N"
 					    "";
-					N: LES(L1.S7.AI02,0.5)XIO(Local_Logic[2])[TON(Alm1_Del,?,?) ,XIC(Alm1_Del.DN) OTE(SCADA_R_Gas.Alm.A01) ];
+                                        N: LES(L1.S7.AI02,0.5)XIO(Local_Logic[2])[TON(Alm1_Del,?,?) ,XIC(Alm1_Del.DN) OTE(SCADA_R_Gas.Alm.A01) ];
 					RC: "Count ther number of low flow faults$N"
 					    "============================";
-					N: XIC(SCADA_R_Gas.Alm.A01)CTU(Ch_Faults,?,?);
+                                        N: XIC(SCADA_R_Gas.Alm.A01)CTU(Ch_Faults,?,?);
 					RC: "CH4 Cylinder Low Flow Alarm Rung$N"
 					    "Monitors pressure during Automatic and Manual Calibration$N"
 					    "==============================================";
@@ -199,9 +199,9 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 					N: XIO(Byp_Pmp_2)OTE(SCADA_R_Gas.Alm.A04);
 					N: XIO(Byp_Pmp_3)OTE(SCADA_R_Gas.Alm.A05);
 					RC: "Mass Flow Controller Low Flow Alarm$N"
-					    "Output flow from MFC = <0.5Lpm then alarm$N"
+                                            "Output flow from MFC = <0.5Lpm then alarm$N"
 					    "Bypassed during calibration";
-					N: XIO(SCADA_R_Analyser_Calibrating_Auto_Input)XIO(SCADA_R_Analyser_Calibrating_Man_Input)LES(Local:7:I.Ch2Data,0.5)OTE(SCADA_R_Gas.Alm.A06);
+                                        N: XIO(SCADA_R_Analyser_Calibrating_Auto_Input)XIO(SCADA_R_Analyser_Calibrating_Man_Input)LES(Local:7:I.Ch2Data,0.5)OTE(SCADA_R_Gas.Alm.A06);
 			END_ROUTINE
 
 END_CONTROLLER

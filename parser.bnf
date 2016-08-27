@@ -10,15 +10,18 @@ module = "MODULE" whitespace word whitespace enclosure <newline>
   (whitespace connection <newline> <newline>) ?
   whitespace "END_MODULE"
 routines = (whitespace routine <newline>) +
-rung-comment = "RC:" whitespace anything-string ending-op
+rung-comment = "RC:" whitespace anything-string (newline whitespace anything-string) * ending-op
 branch-level = (instruction ' ') +
 branch = '[' (branch-level ',') + branch-level ']'
-instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL"
-instruction-arg = simple-word ('[' simple-word ']') ? ('.' simple-word) ?
-instruction-args = (instruction-arg | integer) ( (',' | '=') (instruction-arg | integer)) *
+instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES" | "LES" | "TON" | "CTU"
+instruction-arg = simple-word ('[' (simple-word | integer) ']') ? ('.' simple-word) *
+ch-data = "Ch" integer "Data"
+module-arg = "Local:" integer ':' #'[A-Z]' '.' (ch-data | "Data")
+instruction-name-part = (instruction-arg | integer | float | '?')
+instruction-args =  instruction-name-part ((',' | '=') instruction-name-part) *
 instruction = instruction-name '(' instruction-args ')'
 rung = "N: " (instruction | branch) + ending-op
-routine = "ROUTINE" whitespace word whitespace enclosure <newline>
+routine = "ROUTINE" whitespace word (whitespace enclosure) ? <newline>
   (whitespace (rung-comment | rung) <newline>) + 
   whitespace "END_ROUTINE"
 tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
@@ -74,12 +77,12 @@ end-comment = <')'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
 bit-variable = variable
 array-dimension = <'['> integer <']'>
-simple-word = #'[a-zA-Z_-]+' #'[0-9]*' ('.' integer) ?
+simple-word = #'[0-9a-zA-Z_-]+' ('.' integer) ?
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
-one-or-more-anythings = (anything-word whitespace) * anything-word whitespace ?
+one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 wordy-string = quote one-or-more-words quote
 anything-string = quote one-or-more-anythings quote
 quote = '\"'
