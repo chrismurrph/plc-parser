@@ -26,6 +26,12 @@
         _ (assert res (str "No result. Num of choices is: " num-choices))]
     [msg res]))
 
+(defn two-x []
+  (let [[msg [one two]] (parse-it)]
+    (spit "one.txt" (with-out-str (pp/pprint one)))
+    (spit "two.txt" (with-out-str (pp/pprint two)))
+    (println msg)))
+
 (defn x []
   (let [[msg res] (parse-it)]
     (pp/pprint res)

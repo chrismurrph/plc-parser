@@ -40,3 +40,33 @@ Rung( 7, Branch("fifteen",
         BranchLevel(EQU( p.Tubes_Seq(1).Duration, 0)),
         BranchLevel(NC( p.Tubes_Seq(1).Enabled))
       ), OTE( p.TEMP_Failed_Initialisation)),
+
+Need to be able to do this, but no Scala to look at:
+Interesting thing here is indexing with TransactionPtr - didn't know you could do that
+
+N: EQU(RW_Select,0)XIC(MBTU_Transactions_00[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_00[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_00[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_00[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_00[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_00[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_00[TransactionPtr].TransComplete) ,OTL(TransFound) ];
+
+First rung is branch with two levels
+A comma separates the levels and there's a space after every instruction that's on a level
+
+Third rung:
+A space separates instructions on the same branch level (so don't run into each other)
+The Scala is different because Ben decided to do an OTU
+
+N: XIC(S:FS)[MOV(0,STATE) ,JSR(Initialise,0) ];
+N: NEQ(STATE,0)JSR(A_Input_Map,0);
+RC: "SMARTGAS-connect sets SMRTGS_W_Pending_Tubes_Seq_Changes to TRUE. This rung picks up that change and sets it back to FALSE after calling A_Populate_Tubes_Seq.$N"
+					    "=================================================";
+N: NEQ(STATE,0)XIC(SMRTGS_W_Pending_Tubes_Seq_Changes)[JSR(Update_Sequence_Time,0) JSR(A_Populate_Tubes_Seq,0) ,OTU(SMRTGS_W_Pending_Tubes_Seq_Changes) ];
+
+      Rung(1, NO(p.S_FS),
+        Branch("Startup subroutine, only happens once",BranchLevel(MOV(0, c.STATE)),
+          BranchLevel(JSR(s.Initialise)))),
+      Rung(2, NEQ(c.STATE, 0), JSR(s.A_Input_Map)),
+      //Adrian's does not do, but we will soon want to add this in
+      //Rung(3, NEQ(c.STATE, 0), JSR(s.A_Populate_Vacuum_Readings())),
+      Rung(3, NEQ(c.STATE, 0), NO(c.SMRTGS_W_Pending_Tubes_Seq_Changes),
+        Branch("Populate tubes from SMARTGAS then turn the trigger off",BranchLevel(JSR(s.Update_Sequence_Time),JSR(s.A_Populate_Tubes_Seq)),
+          BranchLevel(NC(c.SMRTGS_W_Pending_Tubes_Seq_Changes), OTE(c.SMRTGS_W_Pending_Tubes_Seq_Changes)))),
+
+

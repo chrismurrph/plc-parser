@@ -11,10 +11,16 @@ module = "MODULE" whitespace word whitespace enclosure <newline>
   whitespace "END_MODULE"
 routines = (whitespace routine <newline>) +
 rung-comment = "RC:" whitespace anything-string ending-op
-rung = "N:"
+branch-level = (instruction ' ') +
+branch = '[' (branch-level ',') + branch-level ']'
+instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL"
+instruction-arg = simple-word ('[' simple-word ']') ? ('.' simple-word) ?
+instruction-args = (instruction-arg | integer) ( (',' | '=') (instruction-arg | integer)) *
+instruction = instruction-name '(' instruction-args ')'
+rung = "N: " (instruction | branch) + ending-op
 routine = "ROUTINE" whitespace word whitespace enclosure <newline>
   (whitespace (rung-comment | rung) <newline>) + 
-  whitespace "END_MODULE" 
+  whitespace "END_ROUTINE"
 tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
 tag-definitions = (tag-definition <newline> <whitespace>) +
 tag = "TAG" <newline whitespace> tag-definitions "END_TAG" <newline>
@@ -68,6 +74,7 @@ end-comment = <')'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
 bit-variable = variable
 array-dimension = <'['> integer <']'>
+simple-word = #'[a-zA-Z_-]+' #'[0-9]*' ('.' integer) ?
 word = #'[.\\0-9a-zA-Z_-]+'
 anything-word = #'[(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'

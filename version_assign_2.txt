@@ -132,7 +132,76 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                 N: EQU(RW_Select,0)XIC(MBTU_Transactions_00[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_00[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_00[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_00[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_00[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_00[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_00[TransactionPtr].TransComplete) ,OTL(TransFound) ];
                 N: EQU(RW_Select,1)XIC(MBTU_Transactions_01[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_01[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_01[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_01[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_01[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_01[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_01[TransactionPtr].TransComplete) ,OTL(TransFound) ];
                 N: EQU(RW_Select,2)XIC(MBTU_Transactions_02[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_02[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_02[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_02[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_02[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_02[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_02[TransactionPtr].TransComplete) ,OTL(TransFound) ];
-                N: EQU(RW_Select,3)XIC(MBTU_Transactions_03[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_03[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_03[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_03[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_03[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_03[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_03[TransactionPtr].TransComplete) ,OTL(TransFound) ];                
+                N: EQU(RW_Select,3)XIC(MBTU_Transactions_03[TransactionPtr].Enabled)CMP(Modbus_TransID=MBTU_Transactions_03[TransactionPtr].TransID)[XIO(CMD_IN.7) MOV(0,MBTU_Transactions_03[TransactionPtr].TransStat) MOV(0,MBTU_Transactions_03[TransactionPtr].TransLastError) ,XIC(CMD_IN.7) MOV(Modbus_Bytes,MBTU_Transactions_03[TransactionPtr].TransLastError) ]MOV(TransactionPtr,WriteTransIDX)MOV(MBTU_Transactions_03[TransactionPtr].LocalOffset,LocalOffset)[OTL(MBTU_Transactions_03[TransactionPtr].TransComplete) ,OTL(TransFound) ];
         END_ROUTINE
+
+			ROUTINE Alarms_Flow
+					RC: "Rung monitors all alarms generated from Sampling System$N"
+					    "============================================$N"
+					    "$N"
+					    "";
+					N: XIO(SCADA_R_Gas.Alm.A01)XIO(SCADA_R_Gas.Alm.A02)XIO(SCADA_R_Gas.Alm.A03)XIO(SCADA_R_Gas.Alm.A04)XIO(SCADA_R_Gas.Alm.A05)XIO(SCADA_R_Gas.Alm.A06)XIO(SCADA_R_Gas.Alm.A07)XIO(SCADA_R_Gas.Alm.A08)XIO(SCADA_R_Gas.Alm.A09)XIO(SCADA_R_Gas.Alm.A10)XIO(SCADA_R_Gas.Alm.A11)XIO(SCADA_R_Gas.Alm.A12)XIO(SCADA_R_Gas.Alm.A13)XIO(SCADA_R_Gas.Alm.A14)XIO(SCADA_R_Gas.Alm.A15)XIO(SCADA_R_Gas.Alm.A16)XIO(SCADA_R_Gas.Alm.A17)XIO(SCADA_R_Gas.Alm.A18)XIO(SCADA_R_Gas.Alm.A19)XIO(SCADA_R_Gas.Alm.A20)XIO(SCADA_R_Gas.Alm.A21)XIO(SCADA_R_Gas.Alm.A22)XIO(SCADA_R_Gas.Alm.A23)XIO(SCADA_R_Gas.Alm.A24)XIO(SCADA_R_Gas.Alm.A25)XIO(SCADA_R_Gas.Alm.A26)XIO(SCADA_R_Gas.Alm.A27)XIO(SCADA_R_Gas.Alm.A28)XIO(SCADA_R_Gas.Alm.A29)XIO(SCADA_R_Gas.Alm.A30)XIO(SCADA_R_Gas.Alm.A31)XIO(SCADA_R_Gas.Alm.A32)OTE(SCADA_R_Gas.Stat.Alms_Hlthy);
+					N: XIC(Global_Logic[0])FLL(0,SCADA_R_Gas.Alm,1);
+					RC: "Detect when there has been a change of sample solenoid$N"
+					    "==============================================";
+					N: NEQ(SMRTGS_W_Switched_To_Tube_Num,Tube_No_Last_Scan)[OTE(Local_Logic[2]) ,MOV(SMRTGS_W_Switched_To_Tube_Num,Tube_No_Last_Scan) ];
+					RC: "Reset the low flow sample counter if there was no low flow alarm at the end of the sample and the next sample begins$N"
+					    "======================================================================================";
+					N: [XIC(Local_Logic[2]) XIO(SCADA_R_Gas.Alm.A01) ,XIC(Ch_Faults.DN) ]RES(Ch_Faults);
+					RC: "Check to see if there are low flow issues with this sample channel$N"
+					    "===============================================$N"
+					    "$N"
+					    "";
+					N: LES(L1.S7.AI02,0.5)XIO(Local_Logic[2])[TON(Alm1_Del,?,?) ,XIC(Alm1_Del.DN) OTE(SCADA_R_Gas.Alm.A01) ];
+					RC: "Count ther number of low flow faults$N"
+					    "============================";
+					N: XIC(SCADA_R_Gas.Alm.A01)CTU(Ch_Faults,?,?);
+					RC: "CH4 Cylinder Low Flow Alarm Rung$N"
+					    "Monitors pressure during Automatic and Manual Calibration$N"
+					    "==============================================";
+					N: XIC(L1.S3.DO.5)LES(L1.S7.AI02,0.5)[TON(Alm_Cal_Flo,?,?) ,XIC(Alm_Cal_Flo.DN) OTE(SCADA_R_Gas.Alm.A07) ];
+					RC: "CO2 Cylinder Low Flow Alarm Rung$N"
+					    "Monitors pressure during Automatic and Manual Calibration$N"
+					    "==============================================";
+					N: XIC(L1.S3.DO.6)LES(L1.S7.AI02,0.5)[TON(Alm_Cal_Flo1,?,?) ,XIC(Alm_Cal_Flo1.DN) OTE(SCADA_R_Gas.Alm.A08) ];
+					RC: "CO Cylinder Low Flow Alarm Rung$N"
+					    "Monitors pressure during Automatic and Manual Calibration$N"
+					    "==============================================";
+					N: XIC(L1.S3.DO.7)LES(L1.S7.AI02,0.5)[TON(Alm_Cal_Flo2,?,?) ,XIC(Alm_Cal_Flo2.DN) OTE(SCADA_R_Gas.Alm.A09) ];
+					RC: "O2 Cal Low Flow Alarm Rung$N"
+					    "Monitors pressure during Automatic and Manual Calibration$N"
+					    "==============================================";
+					N: XIC(SCADA_R_Analyser_Calibrating_Auto_Input)XIC(Local_Logic[10])LES(L1.S7.AI02,0.5)[TON(Alm_Cal_Flo3,?,?) ,XIC(Alm_Cal_Flo3.DN) OTE(SCADA_R_Gas.Alm.A10) ];
+					RC: "N2 Cylinder Low Flow Alarm Rung$N"
+					    "Monitors pressure during Automatic and Manual Calibration$N"
+					    "==============================================";
+					N: XIC(L1.S3.DO.4)LES(L1.S7.AI02,0.5)[TON(Alm_Cal_Flo4,?,?) ,XIC(Alm_Cal_Flo4.DN) OTE(SCADA_R_Gas.Alm.A11) ];
+					RC: "Bypass Pump 1 Fault Rung$N"
+					    "If all 10 Vacuum Transmitters monitoring Bypass Pump 1 display low vacuum then pump has failed$N"
+					    "========================================================================$N"
+					    "$N"
+					    "$N"
+					    "";
+					N: LES(HMI_R_Gas.Ch1_Vac,-5)LES(HMI_R_Gas.Ch2_Vac,-5)LES(HMI_R_Gas.Ch3_Vac,-5)LES(HMI_R_Gas.Ch4_Vac,-5)LES(HMI_R_Gas.Ch5_Vac,-5)LES(HMI_R_Gas.Ch16_Vac,-5)LES(HMI_R_Gas.Ch17_Vac,-5)LES(HMI_R_Gas.Ch18_Vac,-5)LES(HMI_R_Gas.Ch19_Vac,-5)LES(HMI_R_Gas.Ch20_Vac,-5)OTE(Byp_Pmp_1);
+					RC: "Bypass Pump 2 Fault Rung$N"
+					    "If all 10 Vacuum Transmitters monitoring Bypass Pump 2 display low vacuum then pump has failed$N"
+					    "========================================================================$N"
+					    "$N"
+					    "";
+					N: LES(HMI_R_Gas.Ch6_Vac,-5)LES(HMI_R_Gas.Ch7_Vac,-5)LES(HMI_R_Gas.Ch8_Vac,-5)LES(HMI_R_Gas.Ch9_Vac,-5)LES(HMI_R_Gas.Ch10_Vac,-5)LES(HMI_R_Gas.Ch21_Vac,-5)LES(HMI_R_Gas.Ch22_Vac,-5)LES(HMI_R_Gas.Ch23_Vac,-5)LES(HMI_R_Gas.Ch24_Vac,-5)LES(HMI_R_Gas.Ch25_Vac,-5)OTE(Byp_Pmp_2);
+					RC: "Bypass Pump 3 Fault Rung$N"
+					    "If all 10 Vacuum Transmitters monitoring Bypass Pump 3 display low vacuum then pump has failed$N"
+					    "========================================================================$N"
+					    "$N"
+					    "";
+					N: LES(HMI_R_Gas.Ch11_Vac,-5)LES(HMI_R_Gas.Ch12_Vac,-5)LES(HMI_R_Gas.Ch13_Vac,-5)LES(HMI_R_Gas.Ch14_Vac,-5)LES(HMI_R_Gas.Ch15_Vac,-5)LES(HMI_R_Gas.Ch26_Vac,-5)LES(HMI_R_Gas.Ch27_Vac,-5)LES(HMI_R_Gas.Ch28_Vac,-5)LES(HMI_R_Gas.Ch29_Vac,-5)LES(HMI_R_Gas.Ch30_Vac,-5)OTE(Byp_Pmp_3);
+					N: XIO(Byp_Pmp_1)OTE(SCADA_R_Gas.Alm.A03);
+					N: XIO(Byp_Pmp_2)OTE(SCADA_R_Gas.Alm.A04);
+					N: XIO(Byp_Pmp_3)OTE(SCADA_R_Gas.Alm.A05);
+					RC: "Mass Flow Controller Low Flow Alarm$N"
+					    "Output flow from MFC = <0.5Lpm then alarm$N"
+					    "Bypassed during calibration";
+					N: XIO(SCADA_R_Analyser_Calibrating_Auto_Input)XIO(SCADA_R_Analyser_Calibrating_Man_Input)LES(Local:7:I.Ch2Data,0.5)OTE(SCADA_R_Gas.Alm.A06);
+			END_ROUTINE
 
 END_CONTROLLER
