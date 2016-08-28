@@ -1,40 +1,11 @@
 S = "        " tag
-<controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules whitespace tag <newline> routines <newline> "END_CONTROLLER" <newline> *
-data-types = (<newline> whitespace data-type <newline>) +
-data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
-connection = "CONNECTION" whitespace word whitespace enclosure <newline> connection-assigns whitespace "END_CONNECTION"
-modules = (<newline> whitespace module <newline>) +
-module = "MODULE" whitespace word whitespace enclosure <newline> 
-  (whitespace extended-prop-assign <newline>) ? 
-  (whitespace config-data-assign <newline>) ? 
-  (whitespace connection <newline> <newline>) ?
-  whitespace "END_MODULE"
-routines = (whitespace routine <newline>) +
-rung-comment = "RC:" whitespace anything-string (newline whitespace anything-string) * ending-op
-branch-level = (instruction ' ') +
-branch = '[' (branch-level ',') + branch-level ']'
-instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES" | "LES" | "TON" | "CTU"
-ch-data = "Ch" integer "Data"
-rest-instruction-arg = (('[' (simple-word | integer) ']') ? ('.' simple-word) *) | (':' integer ':' #'[A-Z]' '.' (ch-data | "Data"))
-instruction-arg = simple-word rest-instruction-arg
-instruction-name-part = (instruction-arg | integer | float | '?')
-instruction-args = instruction-name-part ((',' | '=') instruction-name-part) *
-instruction = instruction-name '(' instruction-args ')'
-rung = "N: " (instruction | branch) + ending-op
-routine = "ROUTINE" whitespace word (whitespace enclosure) ? <newline>
-  (whitespace (rung-comment | rung) <newline>) + 
-  whitespace "END_ROUTINE"
-tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
-tag-definitions = (tag-definition <newline> <whitespace>) +
-tag = "TAG" <newline whitespace> tag-definitions "END_TAG"
-connection-assigns = (whitespace connection-assign <newline>) +
-connection-assign = input-data-assign | input-force-data-assign | output-data-assign | output-force-data-assign
-data-fills = (whitespace data-fill <newline>) +
-data-fill = normal-fill | bit-fill | custom-fill
-normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
-bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer whitespace enclosure ? ending-op
-custom-fill = custom-type whitespace variable ending-op
-enclosure = '(' any-assigns ')'
+anything-word = #'[\'<>(),$=\:.\\0-9a-zA-Z_-]+'
+one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
+anything-string = quote one-or-more-anythings quote
+quote = '\"'
+ending-op = ';'
+assign-op = ':='
+array-dimension = <'['> integer <']'>
 array-comment = "COMMENT[" integer ']'
 dot-comment = "COMMENT" ('.' variable) * ('.' integer) ?
 tag-comment-assign = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
@@ -42,61 +13,24 @@ tag-radix-assign = "RADIX" whitespace assign-op whitespace radix-type
 tag-description-assign = "Description" whitespace assign-op whitespace anything-string
 tag-enclosure-assign = tag-radix-assign | tag-description-assign | tag-comment-assign
 tag-enclosure = '(' (tag-enclosure-assign ',' newline whitespace) * tag-enclosure-assign ')'
-comment-assigns = leading-comment-assign * comment-assign
-comment-enclosure = '(' comment-assigns ')'
-comment-variable = "COMMENT." variable
-<comment-assign> = comment-variable whitespace assign-op whitespace wordy-string
-leading-comment-assign = comment-assign ',' newline <whitespace>
-<version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
-any-assigns = any-assign-comma * any-assign 
-any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
-any-assign-comma = any-assign ',' newline whitespace
-rhs-of-assign = integer | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
-triple-bracket-rhs-of-assign = "[[[___" xml-word "___]]]"
-engineering-float = float ('e+' | 'e-') integer
-base-two-number = "2#" integer
-single-quote-number = ("\'" | "\'=") ('$' (integer | 'r' | '1E' | '00<' | '1C' | '8D' | '8E')) + "\'"
-data-number = base-two-number | integer | engineering-float | single-quote-number | data-rhs-of-assign
-connection-number = integer | engineering-float
-data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' data-number (newline whitespace) ? ) * ']'
-connection-rhs-of-assign = '[' connection-number (',' connection-number (newline whitespace) ? ) * ']'
-input-data-assign = "InputData" <whitespace> (comment-enclosure <whitespace>) ? assign-op <whitespace> connection-rhs-of-assign ending-op
-input-force-data-assign = "InputForceData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
-output-data-assign = "OutputData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
-output-force-data-assign = "OutputForceData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
-extended-prop-assign = "ExtendedProp" <whitespace> assign-op <whitespace> triple-bracket-rhs-of-assign
-config-data-assign = "ConfigData" <whitespace> assign-op <whitespace> data-rhs-of-assign ending-op
-assign-op = ':='
-ending-op = ';'
-one-comment = <start-comment> stars <inside-comment> stars <end-comment>
-start-comment = <'('>
-end-comment = <')'>
-<stars> = <'*'> +
-<inside-comment> = <allowed-inside-comment> +
-<whitespace> = <#'\s+'>
-variable = #'[0-9a-zA-Z_]+' array-dimension ?
-bit-variable = variable
-array-dimension = <'['> integer <']'>
-simple-word = #'[0-9a-zA-Z_-]+' ('.' integer) ?
-word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[\'<>(),$=\:.\\0-9a-zA-Z_-]+'
-xml-word = #'[/<>.\\0-9a-zA-Z-]+'
-one-or-more-words = (word whitespace) * word
-one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
-wordy-string = quote one-or-more-words quote
-anything-string = quote one-or-more-anythings quote
-quote = '\"'
-integer = '-' ? #'[0-9]+'
-float = #'[-+]?[0-9]*\.[0-9]+'
-version = "V" float
-punctuation = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'
 newline = <'\r' ? '\n'>
-<allowed-inside-comment> = newline | whitespace | word | integer | punctuation
-base-number = integer '#' word
 raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING"
 array-dimmed-raw-type = raw-type array-dimension ?
-array-dimmed-type = (raw-type | custom-type) array-dimension ?
 native-type = raw-type | "BIT"
 custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always"
  | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis" | "OpenConnParams"
 radix-type = "Float" | "Decimal"
+array-dimmed-type = (raw-type | custom-type) array-dimension ?
+<whitespace> = <#'\s+'>
+variable = #'[0-9a-zA-Z_]+' array-dimension ?
+tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
+tag-definitions = (tag-definition <newline> <whitespace>) +
+data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' data-number (newline whitespace) ? ) * ']'
+integer = '-' ? #'[0-9]+'
+float = #'[-+]?[0-9]*\.[0-9]+'
+engineering-float = float ('e+' | 'e-') integer
+base-two-number = "2#" integer
+single-quote-number = ("\'" | "\'=") ('$' (integer | 'r' | '1E' | '00<' | '1C' | '8D' | '8E')) + "\'"
+data-number = base-two-number | integer | engineering-float | single-quote-number | data-rhs-of-assign
+tag = "TAG" <newline whitespace> tag-definitions "END_TAG"
+
