@@ -1,4 +1,4 @@
-S = one-comment <newline> version-assign <newline> <newline> controller
+S = "        " tag
 <controller> = "CONTROLLER" whitespace word whitespace <enclosure> data-types modules whitespace tag <newline> routines <newline> "END_CONTROLLER" <newline> *
 data-types = (<newline> whitespace data-type <newline>) +
 data-type = "DATATYPE" whitespace word whitespace enclosure <newline> data-fills whitespace "END_DATATYPE"
@@ -26,7 +26,7 @@ routine = "ROUTINE" whitespace word (whitespace enclosure) ? <newline>
   whitespace "END_ROUTINE"
 tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
 tag-definitions = (tag-definition <newline> <whitespace>) +
-tag = "TAG" <newline whitespace> tag-definitions "END_TAG" <newline>
+tag = "TAG" <newline whitespace> tag-definitions "END_TAG"
 connection-assigns = (whitespace connection-assign <newline>) +
 connection-assign = input-data-assign | input-force-data-assign | output-data-assign | output-force-data-assign
 data-fills = (whitespace data-fill <newline>) +
@@ -36,7 +36,7 @@ bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whit
 custom-fill = custom-type whitespace variable ending-op
 enclosure = '(' any-assigns ')'
 array-comment = "COMMENT[" integer ']'
-dot-comment = "COMMENT." integer
+dot-comment = "COMMENT." (word '.') * integer ?
 tag-comment-assign = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
 tag-radix-assign = "RADIX" whitespace assign-op whitespace radix-type
 tag-description-assign = "Description" whitespace assign-op whitespace anything-string
@@ -44,7 +44,7 @@ tag-enclosure-assign = tag-radix-assign | tag-description-assign | tag-comment-a
 tag-enclosure = '(' (tag-enclosure-assign ',' newline whitespace) * tag-enclosure-assign ')'
 comment-assigns = leading-comment-assign * comment-assign
 comment-enclosure = '(' comment-assigns ')'
-comment-variable = "COMMENT." variable
+comment-variable = "COMMENT." (word '.') * variable
 <comment-assign> = comment-variable whitespace assign-op whitespace wordy-string
 leading-comment-assign = comment-assign ',' newline <whitespace>
 <version-assign> = variable <whitespace> assign-op <whitespace> float ending-op
@@ -58,7 +58,7 @@ base-two-number = "2#" integer
 single-quote-number = ("\'" | "\'=") ('$' (integer | 'r' | '1E' | '00<' | '1C' | '8D' | '8E')) + "\'"
 data-number = base-two-number | integer | engineering-float | single-quote-number | data-rhs-of-assign
 connection-number = integer | engineering-float
-data-rhs-of-assign = '[' data-number (',' data-number (newline whitespace) ? ) * ']'
+data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' data-number (newline whitespace) ? ) * ']'
 connection-rhs-of-assign = '[' connection-number (',' connection-number (newline whitespace) ? ) * ']'
 input-data-assign = "InputData" <whitespace> (comment-enclosure <whitespace>) ? assign-op <whitespace> connection-rhs-of-assign ending-op
 input-force-data-assign = "InputForceData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
@@ -79,7 +79,7 @@ bit-variable = variable
 array-dimension = <'['> integer <']'>
 simple-word = #'[0-9a-zA-Z_-]+' ('.' integer) ?
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[<>(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[\'<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
@@ -97,5 +97,5 @@ raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING"
 array-dimmed-raw-type = raw-type array-dimension ?
 array-dimmed-type = (raw-type | custom-type) array-dimension ?
 native-type = raw-type | "BIT"
-custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1"
+custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always" | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis"
 radix-type = "Float" | "Decimal"

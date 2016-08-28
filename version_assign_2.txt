@@ -30,7 +30,7 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
                         CanUseRPIFromProducer := No,
                         InhibitAutomaticFirmwareUpdate := 0)
         DATATYPE Always (FamilyType := NoFamily)
-		DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
+                DINT RL_WD_Out (Description := "RedLion Comms Watchdog output");
 		DINT RL_WD_IN (Description := "RedLion Comms Watchdog input");
 		DINT Zero (Description := "Always a Zero Value");
 		SINT ZZZZZZZZZZAlways3 (Hidden := 1);
@@ -91,7 +91,7 @@ CONTROLLER AA9_TBS_CLX (ProcessorType := "1756-L71",
 	                    Mode := 2#0000_0000_0000_0000,
 	                    CompatibleModule := 1,
 	                    KeyMask := 2#0000_0000_0001_1111)
-			ConfigData  := [392,40,1,2,100,[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000
+                       ConfigData  := [392,40,1,2,100,[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000
 		],[0,3,0,4.00000000e+000,2.00000000e+001,4.00000000e+000,2.00000000e+001,0.00000000e+000],[0,3,0
 		,4.00000000e+000,2.00000000e+001,0.00000000e+000,1.00000000e+001,0.00000000e+000],[0,3,0,4.00000000e+000
 		,2.00000000e+001,0.00000000e+000,1.00000000e+002,0.00000000e+000],[0,3,0,4.00000000e+000,2.00000000e+001

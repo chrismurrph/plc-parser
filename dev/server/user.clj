@@ -6,11 +6,16 @@
 (defn r []
   (require 'user :reload))
 
-(def ebnf (slurp "parser.bnf"))
+;(def everything-ebnf (slurp "parser.bnf"))
+;(def tag-ebnf (slurp "tag.bnf"))
 
-(def input (slurp "version_assign_2.txt"))
+;(def curr-dev-input (slurp "version_assign_2.txt"))
+(def prod-input (slurp "prod_input.L5K"))
 
-(defn parse-it []
+;; :optimize :memory
+
+
+(defn parse-many-first [ebnf input]
   (let [my-parser (insta/parser ebnf)
         xs (insta/parses my-parser input)
         num-choices (count xs)
@@ -26,13 +31,76 @@
         _ (assert res (str "No result. Num of choices is: " num-choices))]
     [msg res]))
 
-(defn two-x []
-  (let [[msg [one two]] (parse-it)]
+(defn parse-one-only [ebnf input]
+  (let [my-parser (insta/parser ebnf)
+        res (insta/parse my-parser input :optimize :memory)
+        _ (assert res (str "No result"))]
+    res))
+
+(defn two-x [ebnf input]
+  (let [[msg [one two]] (parse-many-first ebnf input)]
     (spit "one.txt" (with-out-str (pp/pprint one)))
     (spit "two.txt" (with-out-str (pp/pprint two)))
     (println msg)))
 
+(defn one-x [ebnf input]
+  (let [res (parse-one-only ebnf input)]
+    (pp/pprint res)))
+
+(defn indexes-of [s value]
+  (loop [acc [] idx 0]
+    (let [res (str/index-of s value idx)]
+      (if (nil? res)
+        acc
+        (recur (conj acc res) (inc res))))))
+
+(defn info [s begin-str end-str begin end]
+  (let [real-end (+ end (count end-str))
+        value (subs s begin real-end)]
+    {:name  (str/trim begin-str)
+     :value value
+     :begin begin
+     :end   real-end}))
+
+(defn groups-of [s begin-str end-str]
+  (let [begins (indexes-of s begin-str)
+        ends (indexes-of s end-str)
+        num-begins (count begins)
+        num-ends (count ends)
+        _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
+        res (map #(info s begin-str end-str %1 %2) begins ends)]
+    res))
+
+(defn first-of [s begin-str end-str]
+  (let [begin (str/index-of s begin-str)
+        end (str/index-of s end-str)
+        res (info s begin-str end-str begin end)]
+    res))
+
+(defn break-up [s]
+  (let [datatypes (groups-of s "DATATYPE " "END_DATATYPE")
+        modules (groups-of s "MODULE " "END_MODULE")
+        tag (first-of s "\tTAG" "END_TAG")
+        routines (groups-of s "ROUTINE " "END_ROUTINE")
+        res (concat datatypes modules [tag] routines)]
+    res))
+
+(defn usual-x [ebnf input]
+  (let [res (parse-many-first ebnf input)]
+    (pp/pprint res)))
+
 (defn x []
-  (let [[msg res] (parse-it)]
+  (let [groups (break-up prod-input)
+        display-results (map #(vector (:name %) (:begin %) (:end %)) groups)
+        tags (filter #(= (:name %) "TAG") groups)
+        program-tags (:value (first tags))
+        nicer-program-tags (str/replace program-tags #"\t" "        ")
+        [msg res] (parse-many-first (slurp "tag.bnf") nicer-program-tags)
+        ]
+    ;(println program-tags)
     (pp/pprint res)
-    (println msg)))
+    (println msg)
+    (when (:reason res)
+      (do
+        (println (str "See bad_input.txt line: " (:line res) ", column: " (:column res)))
+        (spit "bad_input.txt" nicer-program-tags)))))
