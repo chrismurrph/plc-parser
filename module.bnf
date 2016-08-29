@@ -1,0 +1,51 @@
+<S> = module
+module = "MODULE" whitespace word whitespace enclosure <newline>
+  (whitespace extended-prop-assign <newline>) ? 
+  (whitespace config-data-assign <newline>) ? 
+  (whitespace connection <newline> <newline>) ?
+  whitespace "END_MODULE"
+newline = <'\r' ? '\n'>
+assign-op = ':='
+ending-op = ';'
+array-dimension = <'['> integer <']'>
+variable = #'[0-9a-zA-Z_]+' array-dimension ?
+<whitespace> = <#'\s+'>
+anything-word = #'[<>(),$=\:.\\0-9a-zA-Z_-]+'
+one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
+anything-string = quote one-or-more-anythings quote
+quote = '\"'
+word = #'[.\\0-9a-zA-Z_-]+'
+base-number = integer '#' word
+version = "V" float
+integer = '-' ? #'[0-9]+'
+float = #'[-+]?[0-9]*\.[0-9]+'
+rhs-of-assign = integer | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
+any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
+any-assign-comma = any-assign ',' newline whitespace
+any-assigns = any-assign-comma * any-assign
+enclosure = '(' any-assigns ')'
+base-two-number = "2#" integer
+single-quote-number = ("\'" | "\'=") ('$' (integer | 'r' | '1E' | '00<' | '1C' | '8D' | '8E')) + "\'"
+engineering-float = float ('e+' | 'e-') integer
+data-number = base-two-number | integer | engineering-float | single-quote-number | data-rhs-of-assign
+data-rhs-of-assign = '[' data-number (',' data-number (newline whitespace) ? ) * ']'
+extended-prop-assign = "ExtendedProp" <whitespace> assign-op <whitespace> triple-bracket-rhs-of-assign
+config-data-assign = "ConfigData" <whitespace> assign-op <whitespace> data-rhs-of-assign ending-op
+connection = "CONNECTION" whitespace word whitespace enclosure <newline> connection-assigns whitespace "END_CONNECTION"
+connection-assigns = (whitespace connection-assign <newline>) +
+input-data-assign = "InputData" <whitespace> (comment-enclosure <whitespace>) ? assign-op <whitespace> connection-rhs-of-assign ending-op
+connection-assign = input-data-assign | input-force-data-assign | output-data-assign | output-force-data-assign
+connection-number = integer | engineering-float
+connection-rhs-of-assign = '[' connection-number (',' connection-number (newline whitespace) ? ) * ']'
+input-force-data-assign = "InputForceData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
+output-data-assign = "OutputData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
+output-force-data-assign = "OutputForceData" <whitespace> assign-op <whitespace> connection-rhs-of-assign ending-op
+triple-bracket-rhs-of-assign = "[[[___" xml-word "___]]]"
+xml-word = #'[/<>.\\0-9a-zA-Z-]+'
+comment-assigns = leading-comment-assign * comment-assign
+comment-enclosure = '(' comment-assigns ')'
+comment-variable = "COMMENT." variable
+<comment-assign> = comment-variable whitespace assign-op whitespace wordy-string
+leading-comment-assign = comment-assign ',' newline <whitespace>
+one-or-more-words = (word whitespace) * word
+wordy-string = quote one-or-more-words quote
