@@ -12,3 +12,4 @@ pom.xml.asc
 .idea
 *.iml
 bad_input.txt
+output.txt
