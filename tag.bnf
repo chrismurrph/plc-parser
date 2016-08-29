@@ -11,26 +11,46 @@ dot-comment = "COMMENT" ('.' variable) * ('.' integer) ?
 tag-comment-assign = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
 tag-radix-assign = "RADIX" whitespace assign-op whitespace radix-type
 tag-description-assign = "Description" whitespace assign-op whitespace anything-string
-tag-enclosure-assign = tag-radix-assign | tag-description-assign | tag-comment-assign
+message-type-assign = "MessageType := CIP Generic"
+requested-length-assign = "RequestedLength" whitespace assign-op whitespace integer
+connected-flag-assign = "ConnectedFlag" whitespace assign-op whitespace integer
+connection-path-assign = "ConnectionPath" whitespace assign-op whitespace anything-string
+comm-type-code-assign = "CommTypeCode" whitespace assign-op whitespace integer
+service-code-assign = "ServiceCode" whitespace assign-op whitespace base-sixteen-number
+object-type-assign = "ObjectType" whitespace assign-op whitespace base-sixteen-number
+target-object-assign = "TargetObject" whitespace assign-op whitespace integer
+attribute-number-assign = "AttributeNumber" whitespace assign-op whitespace base-sixteen-number
+local-index-assign = "LocalIndex" whitespace assign-op whitespace integer
+local-element-assign = "LocalElement" whitespace assign-op whitespace quote variable quote
+large-packet-usage-assign = "LargePacketUsage := No"
+destination-tag-assign = "XXDestinationTag" whitespace assign-op whitespace quote variable quote
+tag-enclosure-assign = tag-radix-assign | tag-description-assign | tag-comment-assign | message-type-assign 
+| requested-length-assign | connected-flag-assign | connection-path-assign | comm-type-code-assign 
+| service-code-assign | object-type-assign | target-object-assign | attribute-number-assign | local-index-assign 
+| local-element-assign | large-packet-usage-assign | destination-tag-assign
 tag-enclosure = '(' (tag-enclosure-assign ',' newline whitespace) * tag-enclosure-assign ')'
 newline = <'\r' ? '\n'>
-raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING"
+raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE"
 array-dimmed-raw-type = raw-type array-dimension ?
 native-type = raw-type | "BIT"
-custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always"
- | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis" | "OpenConnParams"
-radix-type = "Float" | "Decimal"
+custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always" 
+| "READ_DATA_REQ" | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis" | "OpenConnParams" | "READ_RESP_STR" 
+| "WRT_DATA" | "MBConnection" | "REQUEST_PARAMETERS" | "String_1" | "LinearScalingIn" | "PLC_TIME" | "TIMER" 
+| "R1_S1_AI_Raw" | "SCADA_R_Gas" | "Gases" | "TIME_OF_PLC" | "GasesOnly" | "SCADA_R_Sys" | "Tube_Seq_Item"
+radix-type = "Float" | "Decimal" 
 array-dimmed-type = (raw-type | custom-type) array-dimension ?
 <whitespace> = <#'\s+'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
-tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? whitespace assign-op whitespace data-number ending-op
+tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? (whitespace assign-op whitespace data-number)? ending-op
 tag-definitions = (tag-definition <newline> <whitespace>) +
 data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' data-number (newline whitespace) ? ) * ']'
 integer = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
 engineering-float = float ('e+' | 'e-') integer
 base-two-number = "2#" integer
-single-quote-number = ("\'" | "\'=") ('$' (integer | 'r' | '1E' | '00<' | '1C' | '8D' | '8E')) + "\'"
-data-number = base-two-number | integer | engineering-float | single-quote-number | data-rhs-of-assign
+base-sixteen-number = "16#" #'[0-9a-f]+'
+gobble-anything-except-dash-or-dollar = #'[\"*;`\[\]%+@{}?<>(),=\:.\\0-9a-zA-Z_-]+'
+single-quote-whatever = ("\'" | "\'=") gobble-anything-except-dash-or-dollar ? ( "$\'" | ('$' gobble-anything-except-dash-or-dollar)) * "\'"
+data-number = base-two-number | integer | engineering-float | single-quote-whatever | data-rhs-of-assign
 tag = "TAG" <newline whitespace> tag-definitions "END_TAG"
 

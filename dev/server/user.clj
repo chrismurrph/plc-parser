@@ -10,7 +10,7 @@
 ;(def tag-ebnf (slurp "tag.bnf"))
 
 ;(def curr-dev-input (slurp "version_assign_2.txt"))
-(def prod-input (slurp "prod_input.L5K"))
+(def prod-input (slurp "altered_prod_input.L5K"))
 
 ;; :optimize :memory
 
@@ -32,6 +32,12 @@
     [msg res]))
 
 (defn parse-one-only [ebnf input]
+  (let [my-parser (insta/parser ebnf)
+        res (insta/parse my-parser input)
+        _ (assert res (str "No result"))]
+    res))
+
+(defn parse-one-only-optimized [ebnf input]
   (let [my-parser (insta/parser ebnf)
         res (insta/parse my-parser input :optimize :memory)
         _ (assert res (str "No result"))]
@@ -95,7 +101,7 @@
         tags (filter #(= (:name %) "TAG") groups)
         program-tags (:value (first tags))
         nicer-program-tags (str/replace program-tags #"\t" "        ")
-        [msg res] (parse-many-first (slurp "tag.bnf") nicer-program-tags)
+        [msg res] (parse-one-only-optimized (slurp "tag.bnf") nicer-program-tags)
         ]
     ;(println program-tags)
     (pp/pprint res)
