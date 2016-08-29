@@ -103,11 +103,11 @@
         tags (filter #(= (:name %) "TAG") groups)
         program-tags (:value (first tags))
         nicer-program-tags (str/replace program-tags #"\t" "        ")
-        [msg res] (parse-one-only (slurp "tag.bnf") nicer-program-tags)
+        res (parse-one-only (slurp "tag.bnf") nicer-program-tags)
         ]
     (println program-tags)
     (pp/pprint res)
-    (println msg)
+    ;(println msg)
     (when (:reason res)
       (do
         (println (str "See bad_input.txt line: " (:line res) ", column: " (:column res)))
