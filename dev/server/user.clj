@@ -77,18 +77,39 @@
         res (map #(info s begin-str end-str %1 %2) begins ends)]
     res))
 
+;; Used when there is only one
 (defn first-of [s begin-str end-str]
   (let [begin (str/index-of s begin-str)
         end (str/index-of s end-str)
         res (info s begin-str end-str begin end)]
     res))
 
-(defn break-up [s]
+(defn old-break-up [s]
   (let [datatypes (groups-of s "DATATYPE " "END_DATATYPE")
         modules (groups-of s "MODULE " "END_MODULE")
         tag (first-of s "\tTAG" "END_TAG")
         routines (groups-of s "ROUTINE " "END_ROUTINE")
         res (concat datatypes modules [tag] routines)]
+    res))
+
+(defn break-up-controller [s]
+  (let [tag (first-of s "\tTAG" "END_TAG")
+        programs (groups-of s "PROGRAM " "END_PROGRAM")
+        datatypes (groups-of s "DATATYPE " "END_DATATYPE")
+        modules (groups-of s "MODULE " "END_MODULE")
+        add-on-instructions (groups-of s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
+        res {:tag tag
+             :programs programs
+             :datatypes datatypes
+             :modules modules
+             :add-on-instructions add-on-instructions}]
+    res))
+
+(defn break-up-program [s]
+  (let [tag (first-of s "\tTAG" "END_TAG")
+        routines (groups-of s "ROUTINE " "END_ROUTINE")
+        res {:tag tag
+             :routines routines}]
     res))
 
 (defn usual-x [ebnf input]
@@ -103,18 +124,30 @@
         ]
     code-blocks))
 
+(defn pp->str [x] (-> x pp/pprint with-out-str))
+
 (defn x []
-  (let [groups (break-up prod-input)
-        ms (group-parser groups "ROUTINE" (slurp "routine.bnf"))
-        results (map :res ms)
-        first-bad-result (some :reason ms)]
-    (spit "output.txt" (with-out-str (pp/pprint results)))
-    (if first-bad-result
-      (spit "bad_input.txt" (-> ms first :input))
-      (spit "bad_input.txt" "All clear"))))
+  (let [controller (break-up-controller prod-input)
+        programs (:programs controller)
+        _ (println (str "Num programs is " (count programs)))
+        first-program-parsed (break-up-program (-> programs first :value))]
+    (spit "output.txt" (pp->str first-program-parsed))))
 
 (defn x-old []
-  (let [groups (break-up prod-input)
+  (let [groups (old-break-up prod-input)
+        ms (group-parser groups "TAG" (slurp "tag.bnf"))
+        results (map :res ms)
+        first-bad-result (some #(when (:reason %) %) results)]
+    (if first-bad-result
+      (do
+        (spit "output.txt" (pp->str first-bad-result))
+        (spit "bad_input.txt" (-> ms first :input)))
+      (do
+        (spit "output.txt" (pp->str results))
+        (spit "bad_input.txt" "All clear")))))
+
+(defn x-old-old []
+  (let [groups (old-break-up prod-input)
         display-results (map #(vector (:name %) (:begin %) (:end %)) groups)
         tags (filter #(= (:name %) "TAG") groups)
         program-tags (:value (first tags))
