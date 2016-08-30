@@ -65,7 +65,11 @@
                 (parse-one-only ebnf s)))
 
 (defn info [ebnf s begin-str end-str begin end]
-  (let [real-end (+ end (count end-str))
+  (let [_ (assert begin-str)
+        _ (assert end-str)
+        _ (assert end)
+        _ (assert begin)
+        real-end (+ end (count end-str))
         value (subs s begin real-end)
         rid-tabs-value (str/replace value #"\t" "        ")
         parsed-value (when ebnf (do-parse ebnf rid-tabs-value))
@@ -96,6 +100,7 @@
          _ (assert begin-str)
          _ (assert end-str)
          begin (str/index-of s begin-str)
+         _ (assert begin (str "No begin-str found: <" begin-str "> in: <" (vec (take 150 s)) ">"))
          end (str/index-of s end-str)
          res (info ebnf s begin-str end-str begin end)]
      res))
@@ -105,13 +110,13 @@
 (defn old-break-up [s]
   (let [datatypes (groups-of nil s "DATATYPE " "END_DATATYPE")
         modules (groups-of nil s "MODULE " "END_MODULE")
-        tag (first-of nil s "\tTAG" "END_TAG")
+        tag (first-of nil s "TAG" "END_TAG")
         routines (groups-of nil s "ROUTINE " "END_ROUTINE")
         res (concat datatypes modules [tag] routines)]
     res))
 
 (defn break-up-controller [s]
-  (let [tag (first-of (slurp "tag.bnf") s "\tTAG" "END_TAG")
+  (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         programs (groups-of s "PROGRAM " "END_PROGRAM")
         ;datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
         ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
@@ -127,7 +132,7 @@
 
 (defn break-up-program [s]
   (let [_ (assert s)
-        tag (first-of (slurp "tag.bnf") s "\tTAG" "END_TAG")
+        tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         routines (groups-of (slurp "routine.bnf") s "ROUTINE " "END_ROUTINE")
         res {:tag tag
              :routines routines}]
@@ -157,8 +162,8 @@
         _ (println (str "Num programs is " (count programs)))
         first-program (break-up-program (-> programs first :value))
         ]
-    #_(spit "output.txt" (pp-str first-program))
-    #_(when (-> first-program :tag :err?)
+    (spit "output.txt" (pp-str first-program))
+    (when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))
 
 (defn x-old []

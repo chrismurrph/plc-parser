@@ -1,4 +1,4 @@
-S = "        " tag
+S = tag
 anything-word = #'[\'<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 anything-string = quote one-or-more-anythings quote
