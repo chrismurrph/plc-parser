@@ -149,7 +149,7 @@
 
 (defn err->out [v]
   (assert v)
-  (spit "bad-input.txt" v))
+  (spit "bad_input.txt" v))
 
 (defn x []
   (let [controller (break-up-controller prod-input)
