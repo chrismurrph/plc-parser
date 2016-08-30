@@ -60,54 +60,75 @@
         acc
         (recur (conj acc res) (inc res))))))
 
-(defn info [s begin-str end-str begin end]
-  (let [real-end (+ end (count end-str))
-        value (subs s begin real-end)]
-    {:name  (str/trim begin-str)
-     :value value
-     :begin begin
-     :end   real-end}))
+;; #(-> % :value (str/replace #"\t" "        ") my-parser)
+(def do-parse (fn [ebnf s]
+                (parse-one-only ebnf s)))
 
-(defn groups-of [s begin-str end-str]
-  (let [begins (indexes-of s begin-str)
-        ends (indexes-of s end-str)
-        num-begins (count begins)
-        num-ends (count ends)
-        _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
-        res (map #(info s begin-str end-str %1 %2) begins ends)]
-    res))
+(defn info [ebnf s begin-str end-str begin end]
+  (let [real-end (+ end (count end-str))
+        value (subs s begin real-end)
+        rid-tabs-value (str/replace value #"\t" "        ")
+        parsed-value (when ebnf (do-parse ebnf rid-tabs-value))
+        err? (if (-> parsed-value :res :reason) true false)]
+    {:name         (str/trim begin-str)
+     :value        rid-tabs-value
+     :parsed-value parsed-value
+     :begin        begin
+     :end          real-end
+     :err?         err?}))
+
+(defn groups-of
+  ([ebnf s begin-str end-str]
+   (let [begins (indexes-of s begin-str)
+         ends (indexes-of s end-str)
+         num-begins (count begins)
+         num-ends (count ends)
+         _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
+         res (map #(info ebnf s begin-str end-str %1 %2) begins ends)]
+     res))
+  ([s begin-str end-str]
+    (groups-of nil s begin-str end-str)))
 
 ;; Used when there is only one
-(defn first-of [s begin-str end-str]
-  (let [begin (str/index-of s begin-str)
-        end (str/index-of s end-str)
-        res (info s begin-str end-str begin end)]
-    res))
+(defn first-of
+  ([ebnf s begin-str end-str]
+   (let [_ (assert s)
+         _ (assert begin-str)
+         _ (assert end-str)
+         begin (str/index-of s begin-str)
+         end (str/index-of s end-str)
+         res (info ebnf s begin-str end-str begin end)]
+     res))
+  ([s begin-str end-str]
+   (first-of nil s begin-str end-str)))
 
 (defn old-break-up [s]
-  (let [datatypes (groups-of s "DATATYPE " "END_DATATYPE")
-        modules (groups-of s "MODULE " "END_MODULE")
-        tag (first-of s "\tTAG" "END_TAG")
-        routines (groups-of s "ROUTINE " "END_ROUTINE")
+  (let [datatypes (groups-of nil s "DATATYPE " "END_DATATYPE")
+        modules (groups-of nil s "MODULE " "END_MODULE")
+        tag (first-of nil s "\tTAG" "END_TAG")
+        routines (groups-of nil s "ROUTINE " "END_ROUTINE")
         res (concat datatypes modules [tag] routines)]
     res))
 
 (defn break-up-controller [s]
-  (let [tag (first-of s "\tTAG" "END_TAG")
+  (let [tag (first-of (slurp "tag.bnf") s "\tTAG" "END_TAG")
         programs (groups-of s "PROGRAM " "END_PROGRAM")
-        datatypes (groups-of s "DATATYPE " "END_DATATYPE")
-        modules (groups-of s "MODULE " "END_MODULE")
-        add-on-instructions (groups-of s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
-        res {:tag tag
-             :programs programs
-             :datatypes datatypes
-             :modules modules
-             :add-on-instructions add-on-instructions}]
+        ;datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
+        ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
+        ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
+        _ (println "t and p")
+        res {:tag       tag
+             :programs  programs
+             ;:datatypes datatypes
+             ;:modules   modules
+             ;:add-on-instructions add-on-instructions
+             }]
     res))
 
 (defn break-up-program [s]
-  (let [tag (first-of s "\tTAG" "END_TAG")
-        routines (groups-of s "ROUTINE " "END_ROUTINE")
+  (let [_ (assert s)
+        tag (first-of (slurp "tag.bnf") s "\tTAG" "END_TAG")
+        routines (groups-of (slurp "routine.bnf") s "ROUTINE " "END_ROUTINE")
         res {:tag tag
              :routines routines}]
     res))
@@ -124,14 +145,21 @@
         ]
     code-blocks))
 
-(defn pp->str [x] (-> x pp/pprint with-out-str))
+(defn pp-str [x] (-> x pp/pprint with-out-str))
+
+(defn err->out [v]
+  (assert v)
+  (spit "bad-input.txt" v))
 
 (defn x []
   (let [controller (break-up-controller prod-input)
         programs (:programs controller)
         _ (println (str "Num programs is " (count programs)))
-        first-program-parsed (break-up-program (-> programs first :value))]
-    (spit "output.txt" (pp->str first-program-parsed))))
+        first-program (break-up-program (-> programs first :value))
+        ]
+    #_(spit "output.txt" (pp-str first-program))
+    #_(when (-> first-program :tag :err?)
+      (err->out (-> first-program :tag :value)))))
 
 (defn x-old []
   (let [groups (old-break-up prod-input)
@@ -140,10 +168,10 @@
         first-bad-result (some #(when (:reason %) %) results)]
     (if first-bad-result
       (do
-        (spit "output.txt" (pp->str first-bad-result))
+        (spit "output.txt" (pp-str first-bad-result))
         (spit "bad_input.txt" (-> ms first :input)))
       (do
-        (spit "output.txt" (pp->str results))
+        (spit "output.txt" (pp-str results))
         (spit "bad_input.txt" "All clear")))))
 
 (defn x-old-old []
