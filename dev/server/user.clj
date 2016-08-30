@@ -105,9 +105,9 @@
 
 (defn x []
   (let [groups (break-up prod-input)
-        ms (group-parser groups "MODULE" (slurp "module.bnf"))
+        ms (group-parser groups "ROUTINE" (slurp "routine.bnf"))
         results (map :res ms)
-        first-bad-result (some :reason (map :res results))]
+        first-bad-result (some :reason ms)]
     (spit "output.txt" (with-out-str (pp/pprint results)))
     (if first-bad-result
       (spit "bad_input.txt" (-> ms first :input))
