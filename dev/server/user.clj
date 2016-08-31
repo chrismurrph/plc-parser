@@ -181,6 +181,18 @@
       (println "All fine")
       (err->out "All fine"))))
 
+(defn errors-from-controller [controller]
+  (let [tag-problem-finder-fn (partial find-problem "TAG")
+        tag-problem (-> controller :tag tag-problem-finder-fn)
+        ]
+    (if tag-problem
+      (do
+        (println (pp-str (:msg tag-problem)))
+        (err->out (:value tag-problem)))
+      (do
+        (println "All fine")
+        (err->out "All fine")))))
+
 (defn errors-from-programs [programs]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         routine-problem-finder-fn (partial find-problem "ROUTINE")
@@ -204,7 +216,8 @@
         ;_ (println (str "Num programs is " (count programs)))
         parsed-programs (map #(-> % :value break-up-program) programs)
         ]
-    (errors-from-programs parsed-programs)
+    (errors-from-controller controller)
+    #_(errors-from-programs parsed-programs)
     #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))
