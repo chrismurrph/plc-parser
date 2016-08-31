@@ -157,12 +157,12 @@
   (spit "bad_input.txt" v))
 
 (defn find-problem [name m]
-  (assert (= (:name m) name))
+  (assert (= (:name m) name) (str "Name found is not " name " but <" (:name m) "> SEE: " (vec m)))
   (if (:err? m)
     (let [res (-> m :parsed-value :res)
           {:keys [line column reason]} res]
       [(str "Problem is at line " line " and col " column " b/c: " reason) (:value m)])
-    nil))
+    ["No problem" nil]))
 
 ;;
 ;; Know the structure of :programs, so look into all and first error that find put in "bad_input.txt"
@@ -179,14 +179,23 @@
       (println "All fine")
       (err->out "All fine"))))
 
+(defn errors-from-programs [programs]
+  (let [tag-problem-finder-fn (partial find-problem "TAG")
+        routine-problem-finder-fn (partial find-problem "ROUTINE")
+        tag-problems (map #(-> % :tag tag-problem-finder-fn) programs)
+        routine-problems (map #(-> % routine-problem-finder-fn) (mapcat :routines programs))
+        ]
+    (println (map first tag-problems))
+    (println (map first routine-problems))))
+
 (defn x []
   (let [controller (break-up-controller prod-input)
         programs (:programs controller)
         ;_ (println (str "Num programs is " (count programs)))
         parsed-programs (map #(-> % :value break-up-program) programs)
         ]
-    (err-from-programs parsed-programs)
-    (spit "output.txt" (pp-str parsed-programs))
+    (errors-from-programs parsed-programs)
+    #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))
 
