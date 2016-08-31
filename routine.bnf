@@ -1,12 +1,11 @@
 <S> = routine
 rung-comment = "RC:" whitespace anything-string (newline whitespace anything-string) * ending-op
-branch-level = (instruction ' ') +
-inside-branch = branch-level | branch
-branch = '[' (inside-branch ',') + inside-branch ' ' ? ']'
+branch-level = ((instruction | branch) ' ') +
+branch = '[' (branch-level ',') + branch-level ']'
 instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES"
 | "LES" | "TON" | "CTU" | "NOP" | "SUB" | "MUL" | "ADD" | "DIV" | "BTD" | "COP" | "GSV" | "ONS" | "OTE" | "MOD"
 | "GEQ" | "CLR" | "OTU" | "JSR"
-add-on-instruction-name = "MBUS_REAL"
+add-on-instruction-name = "MBUS_REAL" | "LinearScalingIn"
 ch-data = "Ch" integer "Data"
 rest-instruction-arg = ( ('.' simple-word) ? ('[' (simple-word | integer) ']') ? ('.' simple-word) *) | (':' integer ':' #'[A-Z]' '.' (ch-data | "Data"))
 instruction-arg = simple-word rest-instruction-arg

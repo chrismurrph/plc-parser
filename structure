@@ -69,4 +69,10 @@ N: NEQ(STATE,0)XIC(SMRTGS_W_Pending_Tubes_Seq_Changes)[JSR(Update_Sequence_Time,
         Branch("Populate tubes from SMARTGAS then turn the trigger off",BranchLevel(JSR(s.Update_Sequence_Time),JSR(s.A_Populate_Tubes_Seq)),
           BranchLevel(NC(c.SMRTGS_W_Pending_Tubes_Seq_Changes), OTE(c.SMRTGS_W_Pending_Tubes_Seq_Changes)))),
 
+Every instruction or branch that is a rung has a space after it
+
+[XIC(Oxygen_Purge.TT) ,
+ XIC(HMI_W.Flo_O2) ,
+ [XIC(HMI_W.Man_Cal_Exit) ,
+  XIC(Purge_Timer.TT) ] TON(Purge_Timer,?,?) ]OTE(Local_Logic[10])
 

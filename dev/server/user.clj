@@ -160,9 +160,11 @@
   (assert (= (:name m) name) (str "Name found is not " name " but <" (:name m) "> SEE: " (vec m)))
   (if (:err? m)
     (let [res (-> m :parsed-value :res)
-          {:keys [line column reason]} res]
-      [(str "Problem is at line " line " and col " column " b/c: " reason) (:value m)])
-    ["No problem" nil]))
+          {:keys [line column reason]} res
+          input (:value m)]
+      [(str "Problem is at line " line " and col " column " b/c: " reason) input]
+      {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
+    {:msg "No problem" :okay? true}))
 
 ;;
 ;; Know the structure of :programs, so look into all and first error that find put in "bad_input.txt"
@@ -171,7 +173,7 @@
 ;;
 (defn err-from-programs [programs]
   (println (count programs))
-  (if-let [[msg value] (find-problem "TAG" (-> programs last :tag))]
+  (let [{:keys [msg value]} (find-problem "TAG" (-> programs last :tag))]
     (do
       (println (pp-str msg))
       (err->out value))
@@ -182,11 +184,17 @@
 (defn errors-from-programs [programs]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         routine-problem-finder-fn (partial find-problem "ROUTINE")
-        tag-problems (map #(-> % :tag tag-problem-finder-fn) programs)
-        routine-problems (map #(-> % routine-problem-finder-fn) (mapcat :routines programs))
+        tag-problems (remove #(-> % :okay?) (map #(-> % :tag tag-problem-finder-fn) programs))
+        routine-problems (remove #(-> % :okay?) (map #(-> % routine-problem-finder-fn) (mapcat :routines programs))) 
+        examining-problem (first routine-problems)
         ]
-    (println (map first tag-problems))
-    (println (map first routine-problems))))
+    (if examining-problem
+      (do
+        (println (pp-str (:msg examining-problem)))
+        (err->out (:value examining-problem)))
+      (do
+        (println "All fine")
+        (err->out "All fine")))))
 
 (defn x []
   (let [controller (break-up-controller prod-input)
