@@ -29,19 +29,19 @@
               (= num-choices 1) (first xs)
               (zero? num-choices) (insta/parse my-parser input))
         _ (assert res (str "No result. Num of choices is: " num-choices))]
-    {:res res :msg msg :input input}))
+    {:res res :msg msg}))
 
 (defn parse-one-only [ebnf input]
   (let [my-parser (insta/parser ebnf)
         res (insta/parse my-parser input)
         _ (assert res (str "No result"))]
-    {:res res :msg nil :input input}))
+    {:res res :msg nil}))
 
 (defn parse-one-only-optimized [ebnf input]
   (let [my-parser (insta/parser ebnf)
         res (insta/parse my-parser input :optimize :memory)
         _ (assert res (str "No result"))]
-    {:res res :msg nil :input input}))
+    {:res res :msg nil}))
 
 (defn two-x [ebnf input]
   (let [[msg [one two]] (parse-many-first ebnf input)]
@@ -73,6 +73,7 @@
         value (subs s begin real-end)
         rid-tabs-value (str/replace value #"\t" "        ")
         parsed-value (when ebnf (do-parse ebnf rid-tabs-value))
+        ;; there should also be a msg, so that's another way finding out
         err? (if (-> parsed-value :res :reason) true false)]
     {:name         (str/trim begin-str)
      :value        rid-tabs-value
@@ -118,13 +119,12 @@
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         programs (groups-of s "PROGRAM " "END_PROGRAM")
-        ;datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
+        datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
         ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
-        _ (println "t and p")
         res {:tag       tag
              :programs  programs
-             ;:datatypes datatypes
+             :datatypes datatypes
              ;:modules   modules
              ;:add-on-instructions add-on-instructions
              }]
@@ -156,14 +156,38 @@
   (assert v)
   (spit "bad_input.txt" v))
 
+(defn find-problem [name m]
+  (assert (= (:name m) name))
+  (if (:err? m)
+    (let [res (-> m :parsed-value :res)
+          {:keys [line column reason]} res]
+      [(str "Problem is at line " line " and col " column " b/c: " reason) (:value m)])
+    nil))
+
+;;
+;; Know the structure of :programs, so look into all and first error that find put in "bad_input.txt"
+;; with message to user so easy to look at it
+;; At lowest level always returning [msg value] - so print the msg and output the value to file 
+;;
+(defn err-from-programs [programs]
+  (println (count programs))
+  (if-let [[msg value] (find-problem "TAG" (-> programs last :tag))]
+    (do
+      (println (pp-str msg))
+      (err->out value))
+    (do
+      (println "All fine")
+      (err->out "All fine"))))
+
 (defn x []
   (let [controller (break-up-controller prod-input)
         programs (:programs controller)
-        _ (println (str "Num programs is " (count programs)))
-        first-program (break-up-program (-> programs first :value))
+        ;_ (println (str "Num programs is " (count programs)))
+        parsed-programs (map #(-> % :value break-up-program) programs)
         ]
-    (spit "output.txt" (pp-str first-program))
-    (when (-> first-program :tag :err?)
+    (err-from-programs parsed-programs)
+    (spit "output.txt" (pp-str parsed-programs))
+    #_(when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))
 
 (defn x-old []
