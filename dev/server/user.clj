@@ -185,7 +185,9 @@
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         routine-problem-finder-fn (partial find-problem "ROUTINE")
         tag-problems (remove #(-> % :okay?) (map #(-> % :tag tag-problem-finder-fn) programs))
-        routine-problems (remove #(-> % :okay?) (map #(-> % routine-problem-finder-fn) (mapcat :routines programs))) 
+        _ (assert (empty? tag-problems))
+        routine-problems (remove #(-> % :okay?) (map #(-> % routine-problem-finder-fn) (mapcat :routines programs)))
+        _ (assert (empty? routine-problems))
         examining-problem (first routine-problems)
         ]
     (if examining-problem

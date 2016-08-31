@@ -4,13 +4,16 @@ branch-level = ((instruction | branch) ' ') +
 branch = '[' (branch-level ',') + branch-level ']'
 instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES"
 | "LES" | "TON" | "CTU" | "NOP" | "SUB" | "MUL" | "ADD" | "DIV" | "BTD" | "COP" | "GSV" | "ONS" | "OTE" | "MOD"
-| "GEQ" | "CLR" | "OTU" | "JSR"
+| "GEQ" | "CLR" | "OTU" | "JSR" | "OSR" | "GRT" | "AFI" | "LEQ" | "CPT" | "FOR" | "MSG" | "LBL" | "JMP" | "MID"
+| "SWPB" | "DELETE" | "OR" | "AND" | "SBR" | "RET" | "CONCAT"
 add-on-instruction-name = "MBUS_REAL" | "LinearScalingIn"
-ch-data = "Ch" integer "Data"
-rest-instruction-arg = ( ('.' simple-word) ? ('[' (simple-word | integer) ']') ? ('.' simple-word) *) | (':' integer ':' #'[A-Z]' '.' (ch-data | "Data"))
+ch-data = "Ch" integer ("Data" | "Underrange" | "Overrange")
+rest-instruction-arg =
+  ( ('.' simple-word) ? ('[' instruction-name-part ']') ? ('.' simple-word ?) * ('[' (simple-word | integer) ']') ?)
+| (':' integer ':' #'[A-Z]' '.' (ch-data | "Data"))
 instruction-arg = simple-word rest-instruction-arg
 instruction-name-part = (instruction-arg | integer | float | '?' | "S:FS")
-instruction-args = instruction-name-part ((',' | '=') instruction-name-part) *
+instruction-args = instruction-name-part ((',' | '=' | '<=' | '+' | '>' | '*' | '<' | '<>') instruction-name-part) *
 instruction = (instruction-name | add-on-instruction-name) '(' instruction-args ? ')'
 rung = "N: " (instruction | branch) + ending-op
 routine = "ROUTINE" ' ' word ' ' <newline> ? enclosure ? (whitespace (rung-comment | rung) <newline>) + whitespace "END_ROUTINE"
@@ -66,10 +69,10 @@ bit-variable = variable
 array-dimension = <'['> integer <']'>
 simple-word = #'[0-9a-zA-Z_-]+' ('.' integer) ?
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[%/+*<>(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[#;’‘\'\]\[%/+*<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
-one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
+one-or-more-anythings = whitespace ? (anything-word whitespace) * anything-word ? whitespace ?
 wordy-string = quote one-or-more-words quote
 anything-string = quote one-or-more-anythings quote
 quote = '\"'
