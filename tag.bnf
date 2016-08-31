@@ -1,5 +1,5 @@
 S = tag
-anything-word = #'[\'<>(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[/\'<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 anything-string = quote one-or-more-anythings quote
 quote = '\"'
@@ -37,21 +37,25 @@ custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MB
 | "READ_DATA_REQ" | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis" | "OpenConnParams" | "READ_RESP_STR" 
 | "WRT_DATA" | "MBConnection" | "REQUEST_PARAMETERS" | "String_1" | "LinearScalingIn" | "PLC_TIME" | "TIMER" 
 | "R1_S1_AI_Raw" | "SCADA_R_Gas" | "Gases" | "TIME_OF_PLC" | "GasesOnly" | "SCADA_R_Sys" | "Tube_Seq_Item"
+| "STR_462"
 add-on-instruction-type = "MBUS_REAL"
 radix-type = "Float" | "Decimal" 
 array-dimmed-type = (raw-type | custom-type | add-on-instruction-type) array-dimension ?
 <whitespace> = <#'\s+'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
+dot-variable = variable ('.' dot-variable) ? ('.' integer) ?
 tag-definition = variable whitespace ':' whitespace array-dimmed-type (whitespace tag-enclosure) ? (whitespace assign-op whitespace data-number)? ending-op
-tag-definitions = (tag-definition <newline> <whitespace>) +
-data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' data-number (newline whitespace) ? ) * ']'
+output-map-definition = variable whitespace "OF" whitespace dot-variable whitespace tag-enclosure ending-op
+definitions = ((tag-definition | output-map-definition) <newline> <whitespace>) +
+data-rhs-of-assign = '[' data-number (newline whitespace) ? (',' (data-number | single-quoted-data-number)) * ']'
 integer = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
-engineering-float = float ('e+' | 'e-') integer
-base-two-number = "2#" integer
 base-sixteen-number = "16#" #'[0-9a-f]+'
-gobble-anything-except-dash-or-dollar = #'[0-9a-zA-Z|~^&! \"*;`\[\]%+@{}?<>(),=\:.\\_-]+'
-single-quote-whatever = ("\'" | "\'=") gobble-anything-except-dash-or-dollar ? ( "$$" | "$\'" | ('$' gobble-anything-except-dash-or-dollar)) * "\'"
-data-number = base-two-number | integer | engineering-float | single-quote-whatever | data-rhs-of-assign
-tag = "TAG" <newline whitespace> tag-definitions "END_TAG"
+gobble-anything = #'[/#$0-9a-zA-Z|~^&! \"*;`\[\]%+@{}?<>(),=\:.\\_-]+' | "\'$" | "\'I" | "\'<" | "\'^"
+data-number = integer-data-number | engineering-float-data-number | data-rhs-of-assign | base-two-data-number
+single-quoted-data-number = "\'" gobble-anything * "\'" (newline whitespace) ? 
+base-two-data-number = "2#" integer (newline whitespace) ?
+engineering-float-data-number = float ('e+' | 'e-') integer (newline whitespace) ?
+integer-data-number = integer (newline whitespace) ?
+tag = "TAG" <newline whitespace> definitions "END_TAG"
 
