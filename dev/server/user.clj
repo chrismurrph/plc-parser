@@ -119,28 +119,38 @@
 
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
-        ;_ (spit "first_tag" (:value tag))
         programs (groups-of s "PROGRAM" "END_PROGRAM")
+        add-on-instructions (groups-of s "ADD_ON_INSTRUCTION_DEFINITION" "END_ADD_ON_INSTRUCTION_DEFINITION")
         datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
         modules (groups-of (slurp "module.bnf") s "MODULE" "END_MODULE")
         configs (groups-of (slurp "config.bnf") s "CONFIG" "END_CONFIG")
         tasks (groups-of (slurp "task.bnf") s "TASK" "END_TASK")
+        trends (groups-of (slurp "trend.bnf") s "TREND" "END_TREND")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
         res {:tag       tag
              :programs  programs
+             :add-on-instructions add-on-instructions
              :datatypes datatypes
              :modules   modules
              :configs   configs
              :tasks     tasks
-             ;:add-on-instructions add-on-instructions
+             :trends    trends
              }]
     res))
 
 (defn break-up-program [s]
   (let [_ (assert s)
         tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
-        routines (groups-of (slurp "routine.bnf") s "ROUTINE " "END_ROUTINE")
+        routines (groups-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
         res {:tag tag
+             :routines routines}]
+    res))
+
+(defn break-up-add-on-instruction [s]
+  (let [_ (assert s)
+        local-tags (first-of (slurp "tag.bnf") s "LOCAL_TAGS" "END_LOCAL_TAGS")
+        routines (first-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
+        res {:local-tags local-tags
              :routines routines}]
     res))
 
@@ -180,14 +190,16 @@
         module-problem-finder-fn (partial find-problem-from-coll "MODULE")
         config-problem-finder-fn (partial find-problem-from-coll "CONFIG")
         task-problem-finder-fn (partial find-problem-from-coll "TASK")
+        trend-problem-finder-fn (partial find-problem-from-coll "TREND")
 
         potential-tag-problem (-> controller :tag tag-problem-finder-fn)
         potential-datatype-problem (-> controller :datatypes datatype-problem-finder-fn)
         potential-module-problem (-> controller :modules module-problem-finder-fn)
         potential-config-problem (-> controller :configs config-problem-finder-fn)
         potential-task-problem (-> controller :tasks task-problem-finder-fn)
+        potential-trend-problem (-> controller :trends trend-problem-finder-fn)
 
-        current-potential potential-task-problem
+        current-potential potential-trend-problem
         ]
     (if (-> current-potential :okay? not)
       (do
@@ -219,14 +231,34 @@
         (println "All fine")
         (err->out "All fine")))))
 
+(defn errors-from-instructions [instructions]
+  (let [tag-problem-finder-fn (partial find-problem-from-coll "LOCAL_TAGS")
+        routine-problem-finder-fn (partial find-problem "ROUTINE")
+        tag-problems (remove #(-> % :okay?) (map #(-> % :tag tag-problem-finder-fn) instructions))
+        ;_ (assert (empty? tag-problems))
+        routine-problems (remove #(-> % :okay?) (map #(-> % :routines routine-problem-finder-fn) instructions))
+        ;_ (assert (empty? routine-problems))
+        examining-problem (first routine-problems)
+        ]
+    (if examining-problem
+      (do
+        (println (pp-str (:msg examining-problem)))
+        (err->out (:value examining-problem)))
+      (do
+        (println "All fine")
+        (err->out "All fine")))))
+
 (defn x []
   (let [controller (break-up-controller prod-input)
         programs (:programs controller)
+        instructions (:add-on-instructions controller)
         ;_ (println (str "Num programs is " (count programs)))
-        parsed-programs (map #(-> % :value break-up-program) programs)
+        broken-up-programs (map #(-> % :value break-up-program) programs)
+        broken-up-instructions (map #(-> % :value break-up-add-on-instruction) instructions)
         ]
-    (errors-from-controller controller)
-    #_(errors-from-programs parsed-programs)
+    ;(errors-from-controller controller)
+    ;(errors-from-programs broken-up-programs)
+    (errors-from-instructions broken-up-instructions)
     #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))

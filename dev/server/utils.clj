@@ -4,11 +4,13 @@
 (defn r []
   (require 'utils :reload))
 
-(defn whitespace? [^Character c]
-  (or (= c \newline) (= c \return) (= c \space) (= c \tab)))
-
+;
+; s and value never change but from-index is recursed, so can use loop recur on just that
+;
 (defn whole-word-index-of [^CharSequence s value ^long from-index]
-  (let [res (str/index-of s value from-index)
+  (let [whitespace? (fn [^Character c]
+                      (or (= c \newline) (= c \return) (= c \space) (= c \tab)))
+        res (str/index-of s value from-index)
         ]
     (if (nil? res)
       nil
@@ -18,8 +20,6 @@
             just-after (first (take 1 (drop end-res s)))
             whitespace-after? (whitespace? just-after)
             whole-word? (and whitespace-before? whitespace-after?)
-            ;_ (println (str value " <" just-before "," just-after ">"))
-            ;_ (println (str "whitespacers: " (whitespace? just-before) "," (whitespace? just-after)))
             ]
         (if whole-word?
           res
