@@ -1,0 +1,924 @@
+TAGS
+                        ADCFraction : REAL (Description := "Difference betwen current input value and InputMin$N(Current Input - InputMin)",
+                                              RADIX := Float,
+                                              ExternalAccess := None,
+                                              DefaultData := 0.00000000e+000);
+                        ADCRange : REAL (Description := "Difference between InputMax and InputMin $N(InputMax - InputMin)",
+                                           RADIX := Float,
+                                           ExternalAccess := None,
+                                           DefaultData := 0.00000000e+000);
+                        OutputRange : REAL (Description := "Difference between Output Max and OutputMin$N(OutputMax - OutputMin)",
+                                              RADIX := Float,
+                                              ExternalAccess := None,
+                                              DefaultData := 0.00000000e+000);
+                        MultipliedNumerator : REAL (Description := "Numerator value which is the result of multiplying the ADCFraction and the OutputRange",
+                                                      RADIX := Float,
+                                                      ExternalAccess := None,
+                                                      DefaultData := 0.00000000e+000);
+                        DividedValue : REAL (Description := "Temporary Value resulting from MultipliedNumerator / ADCRange",
+                                               RADIX := Float,
+                                               ExternalAccess := None,
+                                               DefaultData := 0.00000000e+000);
+                END_LOCAL_TAGS
+
+                ROUTINE Logic 
+                                RC: "THis is a Add-On Instruction for scaling a linear relationship from an ADC to engineering Values$N"
+                                    "$N"
+                                    "Output =  (Current ADC Value - InputMin)*(OutputMax - OutputMin)                                                 $N"
+                                    "____________________________________________               + Output Min$N"
+                                    "( Input Max - InputMin)                                    $N"
+                                    "$N"
+                                    "$N"
+                                    "Output   =                            (ADCFraction)*(OutputRange)                                                                            $N"
+                                    "___________________________________               + Output Min$N"
+                                    "( InputRange)                                    ";
+                                N: NOP();
+                                RC: "Calculate the ADCFraction, OutputRange and ADCRAnge";
+                                N: SUB(Input,InputMin,ADCFraction)SUB(OutputMax,OutputMin,OutputRange)SUB(InputMax,InputMin,ADCRange);
+                                RC: "Calcualte the Numerator and then divide by the Input Range$N"
+                                    "$N"
+                                    "MultipliedNumerator = ADCFraction * Output Range$N"
+                                    "";
+                                N: MUL(ADCFraction,OutputRange,MultipliedNumerator)DIV(MultipliedNumerator,ADCRange,DividedValue);
+                                RC: "Output =  OutputMin plus the DividedValue";
+                                N: ADD(DividedValue,OutputMin,Output);
+                END_ROUTINE
+
+        END_ADD_ON_INSTRUCTION_DEFINITION
+
+        ADD_ON_INSTRUCTION_DEFINITION MBUS_REAL (Description := "Transfer Modbus 16Bit Address Registers n and n+1 to a real Data Type for RA Modbus TCP Implementation.",
+                                                 Revision := "1.0",
+                                                 RevisionNote := "Version 1.0$NInital concept Code 30 June 2014",
+                                                 Vendor := "INACO",
+                                                 ExecutePrescan := No,
+                                                 ExecutePostscan := No,
+                                                 ExecuteEnableInFalse := No,
+                                                 CreatedDate := "2014-07-01T01:50:57.626Z",
+                                                 CreatedBy := "EWS01\Administrator",
+                                                 EditedDate := "2014-07-01T05:21:55.721Z",
+                                                 EditedBy := "Adrian-PC\Adrian",
+                                                 SoftwareRevision := "v20.01")
+                
+                PARAMETERS
+                        EnableIn : BOOL (Description := "Enable Input - System Defined Parameter",
+                                            Usage := Input,
+                                            RADIX := Decimal,
+                                            Required := No,
+                                            Visible := No,
+                                            ExternalAccess := Read Only);
+                        EnableOut : BOOL (Description := "Enable Output - System Defined Parameter",
+                                             Usage := Output,
+                                             RADIX := Decimal,
+                                             Required := No,
+                                             Visible := No,
+                                             ExternalAccess := Read Only);
+                        REG1 : INT (Description := "16Bit Register (n)",
+                                        Usage := Input,
+                                        RADIX := Decimal,
+                                        Required := Yes,
+                                        Visible := Yes,
+                                        ExternalAccess := Read Only,
+                                        DefaultData := 0);
+                        REG2 : INT (Description := "16Bit Register (n+1)",
+                                        Usage := Input,
+                                        RADIX := Decimal,
+                                        Required := Yes,
+                                        Visible := Yes,
+                                        ExternalAccess := Read Only,
+                                        DefaultData := 0);
+                        VAL : REAL (Description := "Converted Value",
+                                       Usage := Output,
+                                       RADIX := Float,
+                                       Required := Yes,
+                                       Visible := Yes,
+                                       ExternalAccess := Read/Write,
+                                       DefaultData := 0.00000000e+000);
+                END_PARAMETERS
+
+                LOCAL_TAGS
+                        TEMPD : DINT (RADIX := Decimal,
+                                        ExternalAccess := None,
+                                        DefaultData := 0);
+                END_LOCAL_TAGS
+
+                ROUTINE Logic 
+                                RC: "Move Bits from Low and High Registers$N"
+                                    "";
+                                N: BTD(REG1,0,TEMPD,0,16)BTD(REG2,0,TEMPD,16,16);
+                                N: COP(TEMPD,VAL,1);
+                END_ROUTINE
+
+        END_ADD_ON_INSTRUCTION_DEFINITION
+
+        TAG
+                A1_C5PLUS_RAW : REAL (RADIX := Float) := 1.75711100e-002;
+                A1_CARBON_DIOXIDE : REAL (Description := "Carbon Dioxide reading from Precisive Analyser 1",
+                            RADIX := Float) := 3.02316099e-001;
+                A1_CO2_RAW : REAL (RADIX := Float) := 2.94770000e-001;
+                A1_Diagnostics : REAL[8] (RADIX := Float) := [6.68211594e+001,9.90948200e-001,5.99619980e+001,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000];
+                A1_Discrete_Inputs : BOOL[32] (Description := "Precisive CH4-CO2 Analyser",
+                            COMMENT[0] := "Precisive CH4-CO2 Analyser Status: On = FAULT",
+                            COMMENT[1] := "Precisive CH4-CO2 Analyser Gas Cell Low Temp: ON = HIGH",
+                            COMMENT[2] := "Precisive CH4-CO2 Analyser Gas Cell High Temp: ON = LOW",
+                            COMMENT[3] := "Precisive CH4-CO2 Analyser Purge Status: On = PURGING",
+                            COMMENT[4] := "Precisive CH4-CO2 Analyser Re-zeroing Status: On = RE_ZEROING",
+                            RADIX := Decimal) := [2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0];
+                A1_ETHANE_RAW : REAL (RADIX := Float) := 2.15036739e-002;
+                A1_Iso_BUTANE_RAW : REAL (RADIX := Float) := 8.18605255e-003;
+                A1_METHANE : REAL (Description := "Methane reading from Precisive Analyser 1",
+                            COMMENT.0 := "Methane Reading from Precisive Analyser 1",
+                            COMMENT.1 := "Carbon Dioxide Reading from Precisive Analyser 1",
+                            COMMENT.2 := "Carbon Monoxide Reading from Precisive Analyser 2",
+                            COMMENT.3 := "Oxygen Reading from Servomex Analyser",
+                            RADIX := Float) := 1.11144614e+000;
+                A1_METHANE_RAW : REAL (RADIX := Float) := 1.11144614e+000;
+                A1_n_BUTANE_RAW : REAL (RADIX := Float) := 1.82405789e-003;
+                A1_PROPANE_RAW : REAL (RADIX := Float) := 4.97750640e-002;
+                A1_Write_Hold_Reg : INT[8] (COMMENT[0] := "Precisive 1 Prediction Beam Average Time",
+                            COMMENT[1] := "Precisvie 1 Zero Beam Average Time",
+                            COMMENT[2] := "Precisive 1 Purge Average Time",
+                            RADIX := Decimal) := [5,30,60,0,0,0,0,0];
+                A2_CARBON_MONOXIDE : REAL (Description := "Carbon Monoxide reading from Precisive Analyser 2",
+                            RADIX := Float) := 0.00000000e+000;
+                A2_CO_RAW : REAL (RADIX := Float) := 0.00000000e+000;
+                A2_Diagnostics : REAL[8] (RADIX := Float) := [9.69029465e+001,1.00261354e+000,6.00060005e+001,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000];
+                A2_Discrete_Inputs : BOOL[32] (Description := "Precisive CH4-CO2 Analyser Gas Cell Re-zeroing: On = RE-ZEROING",
+                            COMMENT[0] := "Precisive CO-O2 Analyser Status: On = FAULT",
+                            COMMENT[1] := "Precisive CO-O2 Analyser Gas Cell Low Temp: ON = HIGH",
+                            COMMENT[2] := "Precisive CO-O2 Analyser Gas Cell High Temp: ON = LOW",
+                            COMMENT[3] := "Precisive CO-O2 Analyser Purge Status: On = PURGING",
+                            COMMENT[4] := "Precisive CO-O2 Analyser Re-zeroing Status: On = RE_ZEROING",
+                            RADIX := Decimal) := [2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0];
+                A2_OXYGEN : REAL (Description := "Oxygen reading from Servomex Cell inside Precisive Analyser 2",
+                            RADIX := Float) := 2.00037231e+001;
+                A2_OXYGEN_RAW : REAL (RADIX := Float) := 2.00037231e+001;
+                A2_Write_Hold_Reg : INT[8] (COMMENT[0] := "Precisive 2 Prediction Beam Average Time",
+                            COMMENT[1] := "Precisvie 2 Zero Beam Average Time",
+                            COMMENT[2] := "Precisive 2 Purge Average Time",
+                            RADIX := Decimal) := [30,30,60,0,0,0,0,0];
+                Always : Always  := [59897,0,0,5,-128,7];
+                APC_ENVR_RAIL_LW901_ALARM : BOOL (Description := "Rail Monitoring LW901 General Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_BLUE : BOOL (Description := "Rail Monitoring LW901 Blue Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_CREST_EXTENSOMETER : BOOL (Description := "Rail Monitoring LW901 Crest Extensometer Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_DISPLACEMENT : BOOL (Description := "Rail Monitoring LW901 Displacement Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_FIXED_INCLINOMETER : BOOL (Description := "Rail Monitoring LW901 In Place Inclonometer Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_GREY : BOOL (Description := "Rail Monitoring LW901 Grey Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_PIEZOMETER : BOOL (Description := "Rail Monitoring LW901 Piezometer Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_RED : BOOL (Description := "Rail Monitoring LW901 Red Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_STEP_DISPLACEMENT : BOOL (Description := "Rail Monitoring LW901 Step Displacement Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_STRESS : BOOL (Description := "Rail Monitoring LW901 Stress Alarm",
+                            RADIX := Decimal) := 0;
+                APC_ENVR_RAIL_LW901_YELLOW : BOOL (Description := "Rail Monitoring LW901 Yellow Alarm",
+                            RADIX := Decimal) := 0;
+                CONSTANT_Count_Up_Holding : DINT (Description := "Always set to 2 because after the second time will enter Fast Holding mode",
+                            RADIX := Decimal) := 2;
+                CONSTANT_Dead_Time : DINT (Description := "Milliseconds to wait after the official sample until switch to the next tube in the sequence",
+                            RADIX := Decimal) := 4000;
+                CONSTANT_Fast_Holding_Dead_Time : DINT (Description := "Once in Fast Holding, milliseconds to wait after official sample before $'switching$' again",
+                            RADIX := Decimal) := 2000;
+                CONSTANT_Fast_Holding_Duration : DINT (Description := "Once in Fast Holding, the milliseconds duration between $'switches$'",
+                            RADIX := Decimal) := 5000;
+                CONSTANT_One_Second : DINT (Description := "A Timer can do something every second",
+                            RADIX := Decimal) := 1000;
+                CONSTANT_Seq_Capacity : DINT (Description := "Capacity of SMRTGS_W_Tubes_Seq array, which is one less than its size, given that 0th element not used",
+                            RADIX := Decimal) := 99;
+                CONSTANT_Stale_Reading_Age : DINT (Description := "Number of seconds at which a Reading is considered to old to be worth displaying in Citect anymore",
+                            RADIX := Decimal) := 604800;
+                CONSTANT_Zero : DINT (Description := "Used for initialisation only by Counters that do not need PRE and Timers that set it dynamically",
+                            RADIX := Decimal) := 0;
+                Global_Logic : BOOL[32] (Description := "Alarm Reset",
+                            RADIX := Decimal) := [2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0];
+                HMI_R_Gas : HMI_R_Gas  := [3.02316099e-001,0.00000000e+000,2.06412888e+001,1.11144614e+000,-7.54266129e+001,7,151,-8.03594131e+001
+                                ,-8.87803192e+001,-8.14370575e+001,-5.38522263e+001,-7.23114700e+001,-6.58201141e+001,-7.54266129e+001
+                                ,-1.37568665e+000,-3.21297455e+000,-1.38746262e+000,-1.29324341e+000,-1.69171524e+000,-1.41886900e+000
+                                ,-1.38157654e+000,-7.11612015e+001,-7.82728424e+001,-1.40316772e+000,-4.56393967e+001,-4.85700264e+001
+                                ,-1.32072449e+000,-1.36391068e+000,-1.47187042e+000,-1.38746262e+000,-1.40905762e+000,-1.39138794e+000
+                                ,-7.31182251e+001,-1.46598053e+000,-8.96596985e+001,-1.35998154e+000,-1.41886900e+000,2.34584500e+001
+                                ,0,0];
+                HMI_R_PLC : HMI_R_PLC  := [[64,0,0,0],[1,58,0,0],[1,0,8,0],[7.14249420e+000,5.79514885e+000,6.97101307e+000,1.14766083e+001,8.42859459e+000
+                                ,9.38524055e+000,7.93174171e+000,1.97814598e+001,1.94859238e+001,1.97786331e+001,1.97927666e+001
+                                ,1.97293262e+001,1.97726669e+001,1.97805176e+001,8.61640644e+000,7.47571754e+000,0,0],[1.97754936e+001
+                                ,1.27944298e+001,1.23980770e+001,1.97874279e+001,1.97808323e+001,1.97644997e+001,1.97789478e+001
+                                ,1.97761192e+001,1.97776909e+001,8.29951286e+000,1.97654419e+001,5.65539074e+000,1.97830315e+001
+                                ,1.97732944e+001,0.00000000e+000,7.77847767e+000,0,64],[4.04611492e+000,1.74894047e+001,4.92854595e-001
+                                ,2.00037231e+001,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,-1.25125889e-003,-9.38444166e-004,-1.25125889e-003,-9.38444166e-004,-1.25125889e-003,-9.38444166e-004
+                                ,-1.87688833e-003,-72,19]];
+                HMI_W : HMI_W  := [0,0];
+                L1 : Local_Chassis (Description := "Layout of the PLC by slots",
+                            COMMENT.S2 := "Second slot - 32 Digital outputs",
+                            COMMENT.S3 := "Third slot - 32 Digital outputs",
+                            COMMENT.S3.DO.0 := "Sample Pump Outlet Solenoid$N 0 = Pump A$N 1 = Pump B",
+                            COMMENT.S3.DO.1 := "Sample Pump Inlet Solenoid$N0 = Pump B$N1 = Pump A",
+                            COMMENT.S3.DO.2 := "Bag Sample Solenoid",
+                            COMMENT.S3.DO.3 := "Calibration Solenoid - Flow to analysers switches from sample to cal gas",
+                            COMMENT.S3.DO.4 := "Zero Gas Solenoid",
+                            COMMENT.S3.DO.5 := "Methane Cylinder Solenoid",
+                            COMMENT.S3.DO.6 := "Carbon Dioxide Cylinder Solenoid",
+                            COMMENT.S3.DO.7 := "Carbon Monoxide Cylinder Solenoid",
+                            COMMENT.S3.DO.8 := "Sample Pump A Control",
+                            COMMENT.S3.DO.9 := "Sample Pump B Control",
+                            COMMENT.S3.DO.10 := "Bag Sample Pump Control",
+                            COMMENT.S3.DO.11 := "Bypass Pump 1 Control",
+                            COMMENT.S3.DO.12 := "Bypass Pump 2 Control",
+                            COMMENT.S3.DO.13 := "Bypass Pump 3 Control",
+                            COMMENT.S3.DO.16 := "Fire Damper Control",
+                            COMMENT.S3.DO.17 := "Blue Strobe - Ventilation Alarm",
+                            COMMENT.S3.DO.18 := "Red Strobe - Gas Alarm",
+                            COMMENT.S4 := "Fourth Slot - 32 Digital Inputs",
+                            COMMENT.S4.DI.0 := "Dehumidifier High Temp Alarm",
+                            COMMENT.S4.DI.16 := "Fire System Isolated",
+                            COMMENT.S4.DI.17 := "Fire Alarm",
+                            COMMENT.S4.DI.18 := "Fire System Fault",
+                            COMMENT.S4.DI.19 := "Safety Relay Gas Alarm",
+                            COMMENT.S4.DI.20 := "Low Oxygen in Gas Room Alarm - Safety Contactor 6",
+                            COMMENT.S4.DI.21 := "Ventilation Fail Alarm - Safety Contactor 4",
+                            COMMENT.S4.DI.22 := "Fire Alarm - Safety Contactor 5",
+                            COMMENT.S4.DI.23 := "Gas Room Ventilation System Bypassed",
+                            COMMENT.S4.DI.24 := "UPS AC Fail",
+                            COMMENT.S5 := "Fifth slot - 16 Analogue inputs",
+                            COMMENT.S5.AI00 := "Vacuum Transmitter - Sample Point 1",
+                            COMMENT.S5.AI01 := "Vacuum Transmitter - Sample Point 2",
+                            COMMENT.S5.AI02 := "Vacuum Transmitter - Sample Point 3",
+                            COMMENT.S5.AI03 := "Vacuum Transmitter - Sample Point 4",
+                            COMMENT.S5.AI04 := "Vacuum Transmitter - Sample Point 5",
+                            COMMENT.S5.AI05 := "Vacuum Transmitter - Sample Point 6",
+                            COMMENT.S5.AI06 := "Vacuum Transmitter - Sample Point 7",
+                            COMMENT.S5.AI07 := "Vacuum Transmitter - Sample Point 8",
+                            COMMENT.S5.AI08 := "Vacuum Transmitter - Sample Point 9",
+                            COMMENT.S5.AI09 := "Vacuum Transmitter - Sample Point 10",
+                            COMMENT.S5.AI10 := "Vacuum Transmitter - Sample Point 11",
+                            COMMENT.S5.AI11 := "Vacuum Transmitter - Sample Point 12",
+                            COMMENT.S5.AI12 := "Vacuum Transmitter - Sample Point 13",
+                            COMMENT.S5.AI13 := "Vacuum Transmitter - Sample Point 14",
+                            COMMENT.S5.AI14 := "Vacuum Transmitter - Sample Point 15",
+                            COMMENT.S5.AI15 := "Vacuum Transmitter - Sample Point 16",
+                            COMMENT.S5[0] := "VacuumTransmitter - Sample Point 1",
+                            COMMENT.S5[1] := "VacuumTransmitter - Sample Point 2",
+                            COMMENT.S5[2] := "VacuumTransmitter - Sample Point 3",
+                            COMMENT.S5[3] := "VacuumTransmitter - Sample Point 4",
+                            COMMENT.S5[4] := "VacuumTransmitter - Sample Point 5",
+                            COMMENT.S5[5] := "VacuumTransmitter - Sample Point 6",
+                            COMMENT.S5[6] := "VacuumTransmitter - Sample Point 7",
+                            COMMENT.S5[7] := "VacuumTransmitter - Sample Point 8",
+                            COMMENT.S5[8] := "VacuumTransmitter - Sample Point 9",
+                            COMMENT.S5[9] := "VacuumTransmitter - Sample Point 10",
+                            COMMENT.S5[10] := "VacuumTransmitter - Sample Point 11",
+                            COMMENT.S5[11] := "VacuumTransmitter - Sample Point 12",
+                            COMMENT.S5[12] := "VacuumTransmitter - Sample Point 13",
+                            COMMENT.S5[13] := "VacuumTransmitter - Sample Point 14",
+                            COMMENT.S5[14] := "VacuumTransmitter - Sample Point 15",
+                            COMMENT.S5[15] := "VacuumTransmitter - Sample Point 16",
+                            COMMENT.S6 := "Sixth slot - 16 Analogue inputs",
+                            COMMENT.S6.AI00 := "Vacuum Transmitter - Sample Point 17",
+                            COMMENT.S6.AI01 := "Vacuum Transmitter - Sample Point 18",
+                            COMMENT.S6.AI02 := "Vacuum Transmitter - Sample Point 19",
+                            COMMENT.S6.AI03 := "Vacuum Transmitter - Sample Point 20",
+                            COMMENT.S6.AI04 := "Vacuum Transmitter - Sample Point 21",
+                            COMMENT.S6.AI05 := "Vacuum Transmitter - Sample Point 22",
+                            COMMENT.S6.AI06 := "Vacuum Transmitter - Sample Point 23",
+                            COMMENT.S6.AI07 := "Vacuum Transmitter - Sample Point 24",
+                            COMMENT.S6.AI08 := "Vacuum Transmitter - Sample Point 25",
+                            COMMENT.S6.AI09 := "Vacuum Transmitter - Sample Point 26",
+                            COMMENT.S6.AI10 := "Vacuum Transmitter - Sample Point 27",
+                            COMMENT.S6.AI11 := "Vacuum Transmitter - Sample Point 28",
+                            COMMENT.S6.AI12 := "Vacuum Transmitter - Sample Point 29",
+                            COMMENT.S6.AI13 := "Vacuum Transmitter - Sample Point 30",
+                            COMMENT.S6.AI15 := "Sampe Pressure Transmitter",
+                            COMMENT.S6[0] := "VacuumTransmitter - Sample Point 17",
+                            COMMENT.S6[1] := "VacuumTransmitter - Sample Point 18",
+                            COMMENT.S6[2] := "VacuumTransmitter - Sample Point 19",
+                            COMMENT.S6[3] := "VacuumTransmitter - Sample Point 20",
+                            COMMENT.S6[4] := "VacuumTransmitter - Sample Point 21",
+                            COMMENT.S6[5] := "VacuumTransmitter - Sample Point 22",
+                            COMMENT.S6[6] := "VacuumTransmitter - Sample Point 23",
+                            COMMENT.S6[7] := "VacuumTransmitter - Sample Point 24",
+                            COMMENT.S6[8] := "VacuumTransmitter - Sample Point 25",
+                            COMMENT.S6[9] := "VacuumTransmitter - Sample Point 26",
+                            COMMENT.S6[10] := "VacuumTransmitter - Sample Point 27",
+                            COMMENT.S6[11] := "VacuumTransmitter - Sample Point 28",
+                            COMMENT.S6[12] := "VacuumTransmitter - Sample Point 29",
+                            COMMENT.S6[13] := "VacuumTransmitter - Sample Point 30",
+                            COMMENT.S6[15] := "Sample Pressure Transmitter 4-20mA",
+                            COMMENT.S7 := "Seventh slot - 16 Analogue inputs",
+                            COMMENT.S7.AI00 := "Gas Guard CH4 Reading",
+                            COMMENT.S7.AI01 := "Gas guard O2 Reading",
+                            COMMENT.S7.AI02 := "Mass Flow Controller - Flow Rate",
+                            COMMENT.S7[0] := "Gas Guard CH4 Reading",
+                            COMMENT.S7[1] := "Gas Guard O2 Reading",
+                            COMMENT.S7[2] := "Mass Flow Controller Flow Rate") := [[64],[14849],[524289],[-8.03574524e+001,-8.87822800e+001,-8.14311676e+001,-5.32299843e+001,-7.23173599e+001
+                                ,-6.63618774e+001,-7.54913864e+001,-1.36391068e+000,-3.21100998e+000,-1.38157654e+000,-1.28931808e+000
+                                ,-1.69564056e+000,-1.41886900e+000,-1.36979675e+000,-7.11553116e+001,-7.82767639e+001,0
+                                ,0],[-1.40709300e+000,-4.49975200e+001,-4.77554169e+001,-1.32072449e+000,-1.37176132e+000
+                                ,-1.47187042e+000,-1.38157654e+000,-1.41298294e+000,-1.39531708e+000,-7.31201935e+001,-1.46990585e+000
+                                ,-8.96518478e+001,-1.35213089e+000,-1.41494370e+000,6.59561157e-003,2.36174469e+001,0,0],[4.04768562e+000
+                                ,1.74894047e+001,4.92462158e-001,2.00037231e+001,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,-1.25125889e-003,-9.38444166e-004,-1.25125889e-003,-1.25125889e-003
+                                ,-1.25125889e-003,-1.25125889e-003,-1.87688833e-003,0,0]];
+                MBTI_Buf_Len_Sent : DINT (Description := "Value returned from a Write MSG block to indicate the number of bytes sent.",
+                            RADIX := Decimal) := 12;
+                MBTI_DestAddress_00 : OpenConnParams (Description := "Params for the OpenConnection Service Don$'t set address here, set it in the MBTU_Connections array.") := [5000,[20,'10.20.45.71?port=50202$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]];
+                MBTI_DestAddress_01 : OpenConnParams (Description := "Params for the OpenConnection Service Don$'t set address here, set it in the MBTU_Connections array.") := [5000,[20,'10.20.45.70?port=50202$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]];
+                MBTI_DestAddress_02 : OpenConnParams (Description := "Params for the OpenConnection Service Don$'t set address here, set it in the MBTU_Connections array.") := [5000,[20,'10.20.45.71?port=50202$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]];
+                MBTI_DestAddress_03 : OpenConnParams (Description := "Params for the OpenConnection Service Don$'t set address here, set it in the MBTU_Connections array.") := [5000,[20,'10.20.45.70?port=50202$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]];
+                MBTI_Instance : DINT[4] (Description := "Used to temporarily store the instance value for sockets.",
+                            RADIX := Decimal) := [20882,27539,26847,17858];
+                MBTI_Read_Data_Req : READ_DATA_REQ[4] (Description := "Array to store the buffer length and timeout for read request.  Leave the timeout = 0 Index = connection id.") := [[0,484],[0,484],[0,484],[0,484]];
+                MBTI_Read_Resp : READ_RESP_STR[4] (Description := "Array to store the data received for each connection.  index = connection id.") := [[[0,0,0],[0,'=$8D$00$00$00$06$00$05$00$00$00$00$8E(y<$B0$E0$F0=K$1E$CB<$06$15::$EF$F1J<$8F$EC$18>$96$FDgB$C4$AE$C8?}$D9$16Bo$A4oB$85$00$00$00$00$DE$DB?$0B$FA$B3@$9D$00$00$00$00$E8$04=$9D$18$96?$CC$C8$048$04B$11$D7$02+$03$t$00$DE$00$DE$0F$FF$00$00$00$00$00$00$00$00$00$00$03$E7$04D$00$00$00$00$00$00$00$00$00$00$02$FD$1A$l$10$E1$04W$00$C8$048$04B$11$D7$02+$03$t$00$DE$00$DE$0F$FF$00$00$00$00$00$00$00$00$00$00$03$E7$04D$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$1Ea$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$1Ea$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00{$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]],[[0,0,0],[0,'=$8E$00$00$00$06$00$05$00$00$00$00$00$E9$FFE$83$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00U$A4?$80$06%Bp$CEOB$C1$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00,[$00$00$00$06$00$05$00$00$00$00,_$00$00$00$06$00$10$00$10$00$03,`$00$00$00;$00$048s$E4@$8D$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00u$CE<v$00$00$00$00$00$00$00$00dK?$80$F9*Bo$07$D8B$AF$00$00$00$00$00$00$00$00$00$00$00$00,b$00$00$00$06$00$05$00$00$00$00,g$00$00$00$06$00$10$00$10$00$03,h$00$00$00$06$00$10$00$10$00$03$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$01M$00$DE$00w8$A0$00$00$00$F3$00$04$F0$02$9A$00$01$00$02$00$03$01M$15$B2$03$t"$B8$1Ea09$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$'$0F$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00<$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]],[[0,0,0],[0,'A$1D$00$00$00$06$00$10$00$11$00$02$00$00$00$06$00$10$00$11$00$02$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$17$01$04$14$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]],[[0,0,0],[0,'A9$00$00$00$06$00$10$00$11$00$02$00$00$03$01$85$02$CB$00$00$03$t"$B8$1Ea09$00$00$00$01M$15$B2$03$t"$B8$1Ea09$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ]]];
+                MBTI_Write_Data_Out : WRT_DATA[4] (Description := "Input params used on write operations.  Index = Connection ID.") := [[500,[2,0,0],[12,[61,-115,0,0,0,6,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,-115,61,0,0
+                                ,0,0,116,2,0,-128,8,0,0,-128]]],[500,[2,0,0],[12,[61,-114,0,0,0,6,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,1,0,-114,61,0,0,0,0,116,2,0,-128,8,0,0,-128]]],[500,[2,0,0],[17,[65,40,0,0,0,11,0,16,0,17,0,2,4,0,5,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,40,65,0,0,0,0,116,2,0,-128,8,0,0,-128]]],[500,[2,0,0],[17,[65,57,0,0,0,11,0,16,0,17,0,2,4,0
+                                ,30,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,57,65,0,0,0,0,116,2,0,-128,18,0,0,-128]]]];
+                MBTU_Connections : MBConnection[4] (Description := "Array of connections objects. Configure you connection and see its status here.") := [[[20,'10.20.45.71?port=502$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,4,1,0],[[20,'10.20.45.70?port=502$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,4,1,0],[[20,'10.20.45.71?port=502$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,4,0,0],[[20,'10.20.45.70?port=502$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,4,0,0]];
+                MBTU_EnetModulePort : STRING (Description := "Path to desired slot of  ENET module 1769 $'$$01$$00$'  1756  $'$$01$$xx. This will be written into all the CIP message blocks during initialization") := [2,'$01$01$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ];
+                MBTU_EnMBTCP : BOOL (Description := "Enables MB Communications",
+                            RADIX := Decimal) := 1;
+                MBTU_MB_0xx : BOOL[1024] (Description := "Local data storage used for reading to and writing from.  Coil Values.",
+                            COMMENT[1] := "Precisive Analyser 1: Perform Re Zero",
+                            COMMENT[2] := "Precisive Analyser 2: Perform Re Zero",
+                            RADIX := Decimal) := [2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#0
+                                ,2#0,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#1,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1
+                                ,2#1,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0];
+                MBTU_MB_1xx : BOOL[1024] (Description := "Local data storage used for reading to and writing from.  Descrete inputl Values.",
+                            COMMENT[1] := "Precisive Analyser 1 - Status Indicator",
+                            COMMENT[2] := "Precisive Analyser 1 - Gas Cell Low Temp: On = High",
+                            COMMENT[3] := "Precisive Analyser 1 - Gas Cell High Temp: On = Low",
+                            COMMENT[4] := "Precisive Analyser 1 - Gas Cell Purge Status: On = PURGING",
+                            COMMENT[5] := "Precisive Analyser 1 - Gas Cell Re-zeroing Status: On = RE-ZEROING",
+                            COMMENT[6] := "Precisive Analyser 1 - Emitter Tune Status: On = TUNING LIGHT SOURCE",
+                            COMMENT[7] := "Precisive Analyser 2 - Status Indicator",
+                            COMMENT[8] := "Precisive Analyser 2 - Gas Cell Low Temp: On = High",
+                            COMMENT[9] := "Precisive Analyser 2 - Gas Cell High Temp: On = Low",
+                            COMMENT[10] := "Precisive Analyser 2 - Gas Cell Purge Status: On = PURGING",
+                            COMMENT[11] := "Precisive Analyser 2 - Gas Cell Re-zeroing Status: On = RE-ZEROING",
+                            COMMENT[12] := "Precisive Analyser 2 - Emitter Tune Status: On = TUNING LIGHT SOURCE",
+                            RADIX := Decimal) := [2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#0,2#1,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#1
+                                ,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#0,2#1,2#0,2#0
+                                ,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#1,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#1,2#1
+                                ,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0
+                                ,2#0,2#0,2#0,2#1,2#0,2#1,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#1,2#1,2#1,2#0,2#1,2#0,2#1,2#1,2#0,2#1,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#1,2#1,2#0,2#1,2#0,2#1,2#0,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#1,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#1
+                                ,2#1,2#0,2#1,2#1,2#1,2#1,2#1,2#1,2#0,2#0,2#0,2#0,2#1,2#1,2#1,2#1,2#1,2#1,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#1,2#1,2#1,2#0,2#0,2#1,2#1,2#1,2#0,2#0,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#1,2#0,2#0,2#0,2#1,2#1,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0];
+                MBTU_MB_3xx : INT[256] (Description := "Local data storage used for reading to and writing from.  Input Register Values.",
+                            RADIX := Decimal) := [0,17374,16270,10361,15536,-7952,15691,7883,15366,5434,15087,-3766,15503,-5096,16022,-665,17092,-20792
+                                ,16253,-9962,17007,-23441,17029,0,0,-8485,16139,-1357,16541,0,16126,0,-16512,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-5633,17795,0,0,0,0,0,0,0,0,0,0,0,0,21924,16256
+                                ,1573,17008,-12721,17089,0,0,0,0,0,0,0,11985,0,-16512,0,0,0,0,0,432,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0];
+                MBTU_MB_4xx : INT[256] (Description := "Local data storage used for reading to and writing from.  Holding register  Values.",
+                            COMMENT[1] := "Precisive Analyser 1 Prediction Average Time",
+                            COMMENT[2] := "Precisive Analyser 1 Purge Average Time",
+                            COMMENT[3] := "Precisive Analyser 1 Zero Average Time",
+                            COMMENT[10] := "Precisive Analyser 2 Prediction Average Time",
+                            COMMENT[11] := "Precisive Analyser 2 Purge Average Time",
+                            COMMENT[12] := "Precisive Analyser 2 Zero Average Time",
+                            RADIX := Decimal) := [333,5,30,60,16256,0,16256,0,16256,0,30,30,60,0,16256,0,16256,5,60,30,0,16256,0,16256,0,16256,0,16256,0,16256,0,16256
+                                ,0,16256,0,16256,5,60,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,58,788,0,0,0,0,0,0,0,0,0,70,0,0,0,0,0,0,0,0,0,12,4,5,6,7,8,9,10,11,12,13,91,92
+                                ,333,0,0,0,0,98,7799,0,0,0,0,5678,0,0,0,0,0,0,0,0,0,0,0,0,0,118,119,0,0,999,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                                ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+                MBTU_SocketParams : REQUEST_PARAMETERS (Description := "Input to the Create socket Msg instructions.  This should not require modifications.for nomral Modbus use.") := [1,[2,0,0]];
+                MBTU_Transactions_00 : MBTransaction[5] (Description := "Transaction definitions for Connection to SLAVE 10.20.45.71 - PRECISIVE ANALYSER 1") := [[1,10,1,0,0,2,1,1,0,[12,'=$86$00$00$00$06$00$01$00$00$00$02$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15750,0],[1,10,2,0,0,6,1,1,0,[12,'=$87$00$00$00$06$00$02$00$00$00$06$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15751,0],[1,30,16,0,16,3,1,1,0,[19,'=$88$00$00$00$r$00$10$00$10$00$03$06$00$05$00$1E$00<$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15752,0],[1,10,4,0,0,28,1,1,0,[12,'=$89$00$00$00$06$00$04$00$00$00$1C$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15753,0],[1,8,5,0,0,1,1,1,0,[12,'=$8D$00$00$00$06$00$05$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15757,0]];
+                MBTU_Transactions_01 : MBTransaction[5] (Description := "Transaction definitions for Connection to SLAVE 10.20.45.70 - PRECISIVE ANALYSER 2") := [[0,10,1,0,3,2,0,1,-1,[12,'D$F9$00$00$00$06$00$01$00$03$00$02$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,17657,2],[1,10,16,0,16,3,17,1,0,[19,'=$8A$00$00$00$r$00$10$00$10$00$03$06$00$05$00<$00$1E$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15754,0],[1,30,16,0,16,3,10,1,0,[19,'=$8B$00$00$00$r$00$10$00$10$00$03$06$00$1E$00$1E$00<$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15755,0],[1,10,4,0,0,28,101,1,0,[12,'=$8C$00$00$00$06$00$04$00$00$00$1C$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15756,0],[1,8,5,0,0,1,2,1,0,[12,'=$8E$00$00$00$06$00$05$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],1,15758,0]];
+                MBTU_Transactions_02 : MBTransaction[5]  := [[0,10,2,0,0,6,1,1,0,[12,'$t$FA$00$00$00$06$00$02$00$00$00$06$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,2554,0],[0,10,4,1,50,10,50,1,-1,[12,'xg$00$00$00$06$01$04$002$00$l$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,30823,2],[0,10,5,1,202,1,202,1,-1,[12,'xt$00$00$00$06$01$05$00$CA$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,30836,2],[0,10,6,1,202,1,202,1,-1,[12,'x$8D$00$00$00$06$01$06$00$CA$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,30861,2],[0,10,16,0,17,2,17,0,-1,[17,'A($00$00$00$0B$00$10$00$11$00$02$04$00$05$00$1E$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,16680,0]];
+                MBTU_Transactions_03 : MBTransaction[5]  := [[0,10,4,1,100,22,100,1,-1,[12,':M$00$00$00$06$01$04$00d$00$16$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,14925,2],[0,10,5,1,203,1,203,1,-1,[12,':f$00$00$00$06$01$05$00$CB$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,14950,2],[0,10,6,1,203,1,203,1,-1,[12,':$7F$00$00$00$06$01$06$00$CB$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,14975,2],[0,10,15,1,210,12,210,0,-1,[15,':$A0$00$00$00$t$01$0F$00$D2$00$p$02$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,15008,2],[0,10,16,0,17,2,36,1,0,[17,'A9$00$00$00$0B$00$10$00$11$00$02$04$00$1E$00$1E$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00$00'
+                                ],0,16697,0]];
+                METHANE_READING : REAL (RADIX := Float) := 0.00000000e+000;
+                Null_Char : String_1  := [0,'$00'];
+                O2_Calibrated_Reading : REAL (Description := "Oxygen Reading$NCalibrated with Zero$Nand Span Gas",
+                            RADIX := Float) := 2.06412888e+001;
+                O2_Cal_Scaling : LinearScalingIn  := [3,2.70549774e-001,2.02510509e+001,0.00000000e+000,2.08999996e+001,2.00017600e+001,2.06392365e+001
+                                ,1.97312107e+001,1.99805012e+001,2.08999996e+001,4.12382294e+002,2.06392365e+001];
+                PLC_TIME : PLC_TIME  := [2016,7,29,15,37,16,914719];
+                Purge_Timer : TIMER  := [1766282,60000,0];
+                R1S1Ch0_Spare : REAL (RADIX := Float) := 0.00000000e+000;
+                R1_S1_AI_Raw : R1_S1_AI_Raw  := [3200,3200,3200,3200,3200,3200,3200,3200];
+                SCADA_R_Analyser_Calibrating_Auto_Input : BOOL (Description := "Analyser has put itself into Calibration mode. SMARTGAS-connect will record$NInput$NMapped",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Analyser_Calibrating_Man_Input : BOOL (Description := "User has put into Calibration mode. Input$NMapped",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Bag_Sampling_Input : BOOL (Description := "User telling the analyser to read from the Bag Sample outlet$NInput Mapped",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Gas : SCADA_R_Gas (COMMENT.ALM.A03 := "Bypass Pump 1 Fault",
+                            COMMENT.ALM.A04 := "Bypass Pump 2 Fault",
+                            COMMENT.ALM.A05 := "Bypass Pump 3 Fault",
+                            COMMENT.ALM.A06 := "Mass Flow Controller Low Flow Alarm",
+                            COMMENT.ALM.A07 := "CH4 Cylinder Low Flow Alarm",
+                            COMMENT.ALM.A08 := "CO2 Cylinder Low Flow Alarm",
+                            COMMENT.ALM.A09 := "CO Cylinder Low Flow Alarm",
+                            COMMENT.ALM.A10 := "O2 Cal Low Flow Alarm",
+                            COMMENT.ALM.A11 := "N2 Cylinder Low Flow Alarm") := [[61,0,0,0],[0]];
+                SCADA_R_Maintenance_Input : BOOL (Description := "User has indicated that no analyser readings are to be relied upon$NInput Mapped",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Official_Seq_Index : DINT (Description := "Index have officially sampled in the Tubes_Seq",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Official_Tube_Num : DINT (Description := "Latest officially sampled Tube Number",
+                            RADIX := Decimal) := 0;
+                SCADA_R_Readings : Gases[33] (Description := "All gas readings for every tube, suitable for Citect. Starts at 1") := [[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,0],[1.25430062e-001,1.90839660e+000,2.09164257e+001
+                                ,2.26712719e-001,0.00000000e+000,0.00000000e+000,0.00000000e+000,1.93535200e-002,0.00000000e+000
+                                ,4108,45162027,0],[3.00370038e-001,1.23260832e+000,2.06412888e+001,1.11549640e+000,1.02262199e-002
+                                ,3.28260437e-002,2.98657715e-002,5.73137961e-002,1.68556292e-002,3390,45162745,0],[1.30939081e-001
+                                ,1.42455149e+000,2.09841824e+001,2.06432119e-001,0.00000000e+000,1.37759121e-002,5.09756897e-003
+                                ,1.90524515e-002,1.17384912e-002,335,45165800,0],[3.90203506e-001,6.99089468e-001,2.04359646e+001
+                                ,9.67558800e-001,0.00000000e+000,6.85775466e-003,0.00000000e+000,0.00000000e+000,1.26282340e-002
+                                ,2671,45163464,0],[2.29299635e-001,1.91206753e-001,2.07460060e+001,7.71301210e-001,0.00000000e+000
+                                ,0.00000000e+000,1.47348456e-002,0.00000000e+000,1.87685825e-002,1952,45164183,0],[2.98221648e-001
+                                ,8.94028783e-001,2.06392365e+001,1.15456247e+000,2.33748071e-002,2.95972489e-002,3.84079926e-002
+                                ,5.31732365e-002,0.00000000e+000,155,45165980,0],[2.94790983e-001,1.06559825e+000,2.06392365e+001
+                                ,1.10630345e+000,1.07929600e-002,5.40137477e-002,0.00000000e+000,9.77643579e-003,0.00000000e+000
+                                ,694,45165441,0],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[1.78142500e-001,9.42313731e-001
+                                ,2.08137627e+001,5.43005884e-001,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,4.92566079e-002,1233,45164902,0],[1.01255305e-001,1.09492242e+000,2.09841824e+001,0.00000000e+000
+                                ,0.00000000e+000,1.17355846e-002,0.00000000e+000,4.28006165e-002,4.39440086e-002,514,45165621
+                                ,0],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[1.13230675e-001,7.68479943e-001,2.09841824e+001
+                                ,1.55054078e-001,0.00000000e+000,2.25050282e-002,0.00000000e+000,0.00000000e+000,3.32616940e-002
+                                ,8421,45157714,0],[1.14742883e-001,1.92198050e+000,2.09492779e+001,1.56103373e-001,0.00000000e+000
+                                ,3.62512358e-002,0.00000000e+000,6.40828535e-003,4.40948419e-002,7702,45158433,0],[0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[2.15031207e-001
+                                ,6.62981749e-001,2.07788582e+001,6.04296386e-001,0.00000000e+000,3.39602157e-002,0.00000000e+000
+                                ,4.99550579e-003,2.28641760e-002,6983,45159152,0],[0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0,0,1],[2.90283620e-001,0.00000000e+000,2.06761951e+001,1.00595582e+000,2.71431357e-002,1.92051718e-003
+                                ,1.03859948e-002,2.56660394e-003,0.00000000e+000,6265,45159870,0],[0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0,0,1],[0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000,0.00000000e+000,0,0,1],[5.03868312e-002,0.00000000e+000
+                                ,2.10560455e+001,1.00660394e-003,0.00000000e+000,2.22555175e-002,7.09835114e-003,4.23663706e-002
+                                ,0.00000000e+000,5546,45160589,0],[5.28502613e-002,0.00000000e+000,2.10560455e+001,0.00000000e+000
+                                ,0.00000000e+000,5.40575534e-002,0.00000000e+000,3.16566192e-002,2.47112866e-002,4827,45161308
+                                ,0]];
+                SCADA_R_Seq_Updated_Time : TIME_OF_PLC  := [2016,5,26,8,18,33,464324,1];
+                SCADA_R_Smartgas_Sample : GasesOnly (Description := "SMARTGAS-connect collects its sample from this buffer") := [2.98221648e-001,8.94028783e-001,2.06392365e+001,1.15456247e+000,0.00000000e+000,0.00000000e+000
+                                ,0.00000000e+000,0.00000000e+000,0.00000000e+000];
+                SCADA_R_Switched_To_Seq_Index : DINT (Description := "Starts at 0. Where currently are in the Tubes_Seq",
+                            RADIX := Decimal) := 27;
+                SCADA_R_Sys : SCADA_R_Sys (Description := "Tube Bundle System Alarms",
+                            COMMENT.ALM[0] := "Dehumidifier High Temp Alarm",
+                            COMMENT.ALM[1] := "Fire System Isolated",
+                            COMMENT.ALM[2] := "Fire Alarm",
+                            COMMENT.ALM[3] := "Fire System Fault",
+                            COMMENT.ALM[4] := "Safety System Gas Alarm",
+                            COMMENT.ALM[5] := "Safety System Ventilation Fail Alarm",
+                            COMMENT.ALM[6] := "Fire Alarm - Safety Contactor 5",
+                            COMMENT.ALM[7] := "Gas Room Ventilation System Bypassed",
+                            COMMENT.ALM[8] := "UPS AC Fail",
+                            COMMENT.ALM[9] := "Precisive CH4-CO2 Analyser Fault",
+                            COMMENT.ALM[10] := "Precisive CO-O2 Analyser Fault") := [[2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0,2#0
+                                ,2#0,2#0,2#0,2#0,2#0]];
+                SCADA_W_Res : BOOL (Description := "Alarm Reset$NRequest from$NSCADA",
+                            RADIX := Decimal) := 0;
+                SMRTGS_W_Holding_Seq_Index : DINT (Description := "Repeat continuously (Hold) at this Seq_Index",
+                            RADIX := Decimal) := 0;
+                SMRTGS_W_Pending_Tubes_Seq_Changes : BOOL (Description := "SMARTGAS-connect has written sequence changes to SMRTGS_W_Tubes_Seq_Buffer",
+                            RADIX := Decimal) := 0;
+                SMRTGS_W_Seq_Updated_Lock_R : DINT (RADIX := Decimal) := 0;
+                SMRTGS_W_Seq_Updated_Lock_W : DINT (RADIX := Decimal) := 0;
+                SMRTGS_W_Smartgas_Manual_Mode : BOOL (Description := "SMARTGAS-connect user is in Manual mode",
+                            RADIX := Decimal) := 0;
+                SMRTGS_W_Switched_To_Tube_Num : DINT (Description := "Starts at 1. The actual tube number are physically switched to",
+                            RADIX := Decimal) := 7;
+                SMRTGS_W_Take_Manual_Sample : BOOL (Description := "SMARTGAS-connect writes a TRUE to instruct this program to save a sample for it in SCADA_R_Smartgas_Sample",
+                            RADIX := Decimal) := 0;
+                SMRTGS_W_Tubes_Seq_Buffer : Tube_Seq_Item[100] (Description := "Sequence of Tubes. Allows repeats. Starts at 1") := [[0,0,0],[3,180000,1],[6,180000,1],[7,180000,1],[1,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[2,180000,1],[3,180000,1],[6,180000
+                                ,1],[7,180000,1],[4,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[5,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[15,180000
+                                ,1],[3,180000,1],[6,180000,1],[7,180000,1],[16,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[18,180000,1],[3,180000,1],[6,180000
+                                ,1],[7,180000,1],[19,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[26,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[28,180000
+                                ,1],[3,180000,1],[6,180000,1],[7,180000,1],[31,180000,1],[3,180000,1],[6,180000,1],[7,180000,1],[32,180000,1],[25,20000,0]];
+                STATE : DINT (Description := "12 states starting at 0 which is $'Faulted$'",
+                            RADIX := Decimal) := 2;
+                Take_Manual_Sample_Counter : COUNTER (Description := "Diagnosis only. When not in Automatic mode, can observe SMARTGAS-connect taking samples") := [536870912,0,4];
+                MBTI_Connect_Sock_MSG_00 : MESSAGE (Description := "Used to connect Connection 0.",
+                                                  MessageType := CIP Generic,
+                                                  RequestedLength := 28,
+                                                  ConnectedFlag := 2,
+                                                  ConnectionPath := "AA9_TBS_Ethernet",
+                                                  CommTypeCode := 0,
+                                                  ServiceCode := 16#004c,
+                                                  ObjectType := 16#0342,
+                                                  TargetObject := 20882,
+                                                  AttributeNumber := 16#0000,
+                                                  LocalIndex := 0,
+                                                  LocalElement := "MBTI_DestAddress_00",
+                                                  LargePacketUsage := No);
+                MBTI_Connect_Sock_MSG_01 : MESSAGE (Description := "Used to connect Connection 1.",
+                                                  MessageType := CIP Generic,
+                                                  RequestedLength := 28,
+                                                  ConnectedFlag := 2,
+                                                  ConnectionPath := "AA9_TBS_Ethernet",
+                                                  CommTypeCode := 0,
+                                                  ServiceCode := 16#004c,
+                                                  ObjectType := 16#0342,
+                                                  TargetObject := 27539,
+                                                  AttributeNumber := 16#0000,
+                                                  LocalIndex := 0,
+                                                  LocalElement := "MBTI_DestAddress_01",
+                                                  LargePacketUsage := No);
+                MBTI_Connect_Sock_MSG_02 : MESSAGE (Description := "Used to connect Connection 2.",
+                                                  MessageType := CIP Generic,
+                                                  RequestedLength := 28,
+                                                  ConnectedFlag := 2,
+                                                  ConnectionPath := "AA9_TBS_Ethernet",
+                                                  CommTypeCode := 0,
+                                                  ServiceCode := 16#004c,
+                                                  ObjectType := 16#0342,
+                                                  TargetObject := 26847,
+                                                  AttributeNumber := 16#0000,
+                                                  LocalIndex := 0,
+                                                  LocalElement := "MBTI_DestAddress_02",
+                                                  LargePacketUsage := No);
+                MBTI_Connect_Sock_MSG_03 : MESSAGE (Description := "Used to connect Connection 3.",
+                                                  MessageType := CIP Generic,
+                                                  RequestedLength := 28,
+                                                  ConnectedFlag := 2,
+                                                  ConnectionPath := "AA9_TBS_Ethernet",
+                                                  CommTypeCode := 0,
+                                                  ServiceCode := 16#004c,
+                                                  ObjectType := 16#0342,
+                                                  TargetObject := 17858,
+                                                  AttributeNumber := 16#0000,
+                                                  LocalIndex := 0,
+                                                  LocalElement := "MBTI_DestAddress_03",
+                                                  LargePacketUsage := No);
+                MBTI_Create_Sock_MSG_00 : MESSAGE (Description := "Creates the raw socket for Connection 0.",
+                                                 MessageType := CIP Generic,
+                                                 RequestedLength := 12,
+                                                 ConnectedFlag := 2,
+                                                 ConnectionPath := "AA9_TBS_Ethernet",
+                                                 CommTypeCode := 0,
+                                                 ServiceCode := 16#004b,
+                                                 ObjectType := 16#0342,
+                                                 TargetObject := 0,
+                                                 AttributeNumber := 16#0000,
+                                                 LocalIndex := 0,
+                                                 LocalElement := "MBTU_SocketParams",
+                                                 DestinationTag := "MBTI_Instance[0]",
+                                                 LargePacketUsage := No);
+                MBTI_Create_Sock_MSG_01 : MESSAGE (Description := "Creates the raw socket for Connection 1.",
+                                                 MessageType := CIP Generic,
+                                                 RequestedLength := 12,
+                                                 ConnectedFlag := 2,
+                                                 ConnectionPath := "AA9_TBS_Ethernet",
+                                                 CommTypeCode := 0,
+                                                 ServiceCode := 16#004b,
+                                                 ObjectType := 16#0342,
+                                                 TargetObject := 0,
+                                                 AttributeNumber := 16#0000,
+                                                 LocalIndex := 0,
+                                                 LocalElement := "MBTU_SocketParams",
+                                                 DestinationTag := "MBTI_Instance[1]",
+                                                 LargePacketUsage := No);
+                MBTI_Create_Sock_MSG_02 : MESSAGE (Description := "Creates the raw socket for Connection 2.",
+                                                 MessageType := CIP Generic,
+                                                 RequestedLength := 12,
+                                                 ConnectedFlag := 2,
+                                                 ConnectionPath := "AA9_TBS_Ethernet",
+                                                 CommTypeCode := 0,
+                                                 ServiceCode := 16#004b,
+                                                 ObjectType := 16#0342,
+                                                 TargetObject := 0,
+                                                 AttributeNumber := 16#0000,
+                                                 LocalIndex := 0,
+                                                 LocalElement := "MBTU_SocketParams",
+                                                 DestinationTag := "MBTI_Instance[2]",
+                                                 LargePacketUsage := No);
+                MBTI_Create_Sock_MSG_03 : MESSAGE (Description := "Creates the raw socket for Connection 3.",
+                                                 MessageType := CIP Generic,
+                                                 RequestedLength := 12,
+                                                 ConnectedFlag := 2,
+                                                 ConnectionPath := "AA9_TBS_Ethernet",
+                                                 CommTypeCode := 0,
+                                                 ServiceCode := 16#004b,
+                                                 ObjectType := 16#0342,
+                                                 TargetObject := 0,
+                                                 AttributeNumber := 16#0000,
+                                                 LocalIndex := 0,
+                                                 LocalElement := "MBTU_SocketParams",
+                                                 DestinationTag := "MBTI_Instance[3]",
+                                                 LargePacketUsage := No);
+                MBTI_Delete_All_MSG : MESSAGE (Description := "Used to disconnect and delete all sockets on shut down and initialization.",
+                                             MessageType := CIP Generic,
+                                             RequestedLength := 0,
+                                             ConnectedFlag := 2,
+                                             ConnectionPath := "AA9_TBS_Ethernet",
+                                             CommTypeCode := 0,
+                                             ServiceCode := 16#0051,
+                                             ObjectType := 16#0342,
+                                             TargetObject := 0,
+                                             AttributeNumber := 16#0000,
+                                             LocalIndex := 0,
+                                             LargePacketUsage := No);
+                MBTI_Delete_Socket_MSG_00 : MESSAGE (Description := "Closes and deletes the socket created for connection 0.",
+                                                   MessageType := CIP Generic,
+                                                   RequestedLength := 0,
+                                                   ConnectedFlag := 2,
+                                                   ConnectionPath := "AA9_TBS_Ethernet",
+                                                   CommTypeCode := 0,
+                                                   ServiceCode := 16#004f,
+                                                   ObjectType := 16#0342,
+                                                   TargetObject := 20882,
+                                                   AttributeNumber := 16#0000,
+                                                   LocalIndex := 0,
+                                                   LargePacketUsage := No);
+                MBTI_Delete_Socket_MSG_01 : MESSAGE (Description := "Closes and deletes the socket created for connection 1.",
+                                                   MessageType := CIP Generic,
+                                                   RequestedLength := 0,
+                                                   ConnectedFlag := 2,
+                                                   ConnectionPath := "AA9_TBS_Ethernet",
+                                                   CommTypeCode := 0,
+                                                   ServiceCode := 16#004f,
+                                                   ObjectType := 16#0342,
+                                                   TargetObject := 27539,
+                                                   AttributeNumber := 16#0000,
+                                                   LocalIndex := 0,
+                                                   LargePacketUsage := No);
+                MBTI_Delete_Socket_MSG_02 : MESSAGE (Description := "Closes and deletes the socket created for connection 2.",
+                                                   MessageType := CIP Generic,
+                                                   RequestedLength := 0,
+                                                   ConnectedFlag := 2,
+                                                   ConnectionPath := "AA9_TBS_Ethernet",
+                                                   CommTypeCode := 0,
+                                                   ServiceCode := 16#004f,
+                                                   ObjectType := 16#0342,
+                                                   TargetObject := 26847,
+                                                   AttributeNumber := 16#0000,
+                                                   LocalIndex := 0,
+                                                   LargePacketUsage := No);
+                MBTI_Delete_Socket_MSG_03 : MESSAGE (Description := "Closes and deletes the socket created for connection 3.",
+                                                   MessageType := CIP Generic,
+                                                   RequestedLength := 0,
+                                                   ConnectedFlag := 2,
+                                                   ConnectionPath := "AA9_TBS_Ethernet",
+                                                   CommTypeCode := 0,
+                                                   ServiceCode := 16#004f,
+                                                   ObjectType := 16#0342,
+                                                   TargetObject := 17858,
+                                                   AttributeNumber := 16#0000,
+                                                   LocalIndex := 0,
+                                                   LargePacketUsage := No);
+                MBTI_Read_Data_MSG_00 : MESSAGE (Description := "Does the incoming reads on Connection 0.",
+                                               MessageType := CIP Generic,
+                                               RequestedLength := 8,
+                                               ConnectedFlag := 2,
+                                               ConnectionPath := "AA9_TBS_Ethernet",
+                                               CommTypeCode := 0,
+                                               ServiceCode := 16#004d,
+                                               ObjectType := 16#0342,
+                                               TargetObject := 20882,
+                                               AttributeNumber := 16#0000,
+                                               LocalIndex := 0,
+                                               LocalElement := "MBTI_Read_Data_Req[0]",
+                                               DestinationTag := "MBTI_Read_Resp[0]",
+                                               LargePacketUsage := No);
+                MBTI_Read_Data_MSG_01 : MESSAGE (Description := "Does the incoming reads on Connection 1.",
+                                               MessageType := CIP Generic,
+                                               RequestedLength := 8,
+                                               ConnectedFlag := 2,
+                                               ConnectionPath := "AA9_TBS_Ethernet",
+                                               CommTypeCode := 0,
+                                               ServiceCode := 16#004d,
+                                               ObjectType := 16#0342,
+                                               TargetObject := 27539,
+                                               AttributeNumber := 16#0000,
+                                               LocalIndex := 0,
+                                               LocalElement := "MBTI_Read_Data_Req[1]",
+                                               DestinationTag := "MBTI_Read_Resp[1]",
+                                               LargePacketUsage := No);
+                MBTI_Read_Data_MSG_02 : MESSAGE (Description := "Does the incoming reads on Connection 2.",
+                                               MessageType := CIP Generic,
+                                               RequestedLength := 8,
+                                               ConnectedFlag := 2,
+                                               ConnectionPath := "AA9_TBS_Ethernet",
+                                               CommTypeCode := 0,
+                                               ServiceCode := 16#004d,
+                                               ObjectType := 16#0342,
+                                               TargetObject := 26847,
+                                               AttributeNumber := 16#0000,
+                                               LocalIndex := 0,
+                                               LocalElement := "MBTI_Read_Data_Req[2]",
+                                               DestinationTag := "MBTI_Read_Resp[2]",
+                                               LargePacketUsage := No);
+                MBTI_Read_Data_MSG_03 : MESSAGE (Description := "Does the incoming reads on Connection 3..",
+                                               MessageType := CIP Generic,
+                                               RequestedLength := 8,
+                                               ConnectedFlag := 2,
+                                               ConnectionPath := "AA9_TBS_Ethernet",
+                                               CommTypeCode := 0,
+                                               ServiceCode := 16#004d,
+                                               ObjectType := 16#0342,
+                                               TargetObject := 17858,
+                                               AttributeNumber := 16#0000,
+                                               LocalIndex := 0,
+                                               LocalElement := "MBTI_Read_Data_Req[3]",
+                                               DestinationTag := "MBTI_Read_Resp[3]",
+                                               LargePacketUsage := No);
+                MBTI_Write_Data_MSG_00 : MESSAGE (Description := "Does the out going writes on Connection 0.",
+                                                MessageType := CIP Generic,
+                                                RequestedLength := 28,
+                                                ConnectedFlag := 2,
+                                                ConnectionPath := "AA9_TBS_Ethernet",
+                                                CommTypeCode := 0,
+                                                ServiceCode := 16#004e,
+                                                ObjectType := 16#0342,
+                                                TargetObject := 20882,
+                                                AttributeNumber := 16#0000,
+                                                LocalIndex := 0,
+                                                LocalElement := "MBTI_Write_Data_Out[0]",
+                                                DestinationTag := "MBTI_Buf_Len_Sent",
+                                                LargePacketUsage := No);
+                MBTI_Write_Data_MSG_01 : MESSAGE (Description := "Does the out going writes on Connection 1.",
+                                                MessageType := CIP Generic,
+                                                RequestedLength := 28,
+                                                ConnectedFlag := 2,
+                                                ConnectionPath := "AA9_TBS_Ethernet",
+                                                CommTypeCode := 0,
+                                                ServiceCode := 16#004e,
+                                                ObjectType := 16#0342,
+                                                TargetObject := 27539,
+                                                AttributeNumber := 16#0000,
+                                                LocalIndex := 0,
+                                                LocalElement := "MBTI_Write_Data_Out[1]",
+                                                DestinationTag := "MBTI_Buf_Len_Sent",
+                                                LargePacketUsage := No);
+                MBTI_Write_Data_MSG_02 : MESSAGE (Description := "Does the out going writes on Connection 2.",
+                                                MessageType := CIP Generic,
+                                                RequestedLength := 33,
+                                                ConnectedFlag := 2,
+                                                ConnectionPath := "AA9_TBS_Ethernet",
+                                                CommTypeCode := 0,
+                                                ServiceCode := 16#004e,
+                                                ObjectType := 16#0342,
+                                                TargetObject := 26847,
+                                                AttributeNumber := 16#0000,
+                                                LocalIndex := 0,
+                                                LocalElement := "MBTI_Write_Data_Out[2]",
+                                                DestinationTag := "MBTI_Buf_Len_Sent",
+                                                LargePacketUsage := No);
+                MBTI_Write_Data_MSG_03 : MESSAGE (Description := "Does the out going writes on Connection 3.",
+                                                MessageType := CIP Generic,
+                                                RequestedLength := 33,
+                                                ConnectedFlag := 2,
+                                                ConnectionPath := "AA9_TBS_Ethernet",
+                                                CommTypeCode := 0,
+                                                ServiceCode := 16#004e,
+                                                ObjectType := 16#0342,
+                                                TargetObject := 17858,
+                                                AttributeNumber := 16#0000,
+                                                LocalIndex := 0,
+                                                LocalElement := "MBTI_Write_Data_Out[3]",
+                                                DestinationTag := "MBTI_Buf_Len_Sent",
+                                                LargePacketUsage := No);
+        END_TAG

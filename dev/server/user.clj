@@ -53,9 +53,36 @@
   (let [res (parse-one-only ebnf input)]
     (pp/pprint res)))
 
+(defn whitespace? [^Character c]
+  (or (= c "\\n") (= c "##r") (= c ' ') (= c \t)))
+
+(defn whole-word-index-of [^CharSequence s value ^long from-index]
+  (let [res (str/index-of s value from-index)
+        ]
+    (if (nil? res)
+      nil
+      (let [just-before (first (take 1 (drop (dec res) s)))
+            whitespace-before? (whitespace? just-before)
+            end-res (+ res (count value))
+            just-after (first (take 1 (drop end-res s)))
+            whitespace-after? (whitespace? just-after)
+            whole-word? (and whitespace-before? whitespace-after?)
+            _ (println (str value " <" just-before "," just-after ">"))
+            _ (println (str "whitespacers: " (whitespace? just-before) "," (whitespace? just-after)))
+            ]
+        (if whole-word?
+          res
+          (whole-word-index-of s value end-res))))))
+
+(defn test-whole-word []
+  (let [s prod-input 
+        want "PROGRAM"
+        res (whole-word-index-of s want 0)]
+    res))
+
 (defn indexes-of [s value]
   (loop [acc [] idx 0]
-    (let [res (str/index-of s value idx)]
+    (let [res (whole-word-index-of s value idx)]
       (if (nil? res)
         acc
         (recur (conj acc res) (inc res))))))
@@ -103,6 +130,8 @@
          begin (str/index-of s begin-str)
          _ (assert begin (str "No begin-str found: <" begin-str "> in: <" (vec (take 150 s)) ">"))
          end (str/index-of s end-str)
+         _ (assert (> end begin) (str "Begin must be before end: " begin " " end))
+         _ (println "begin end " begin " " end ": " (vec (take 150 (drop begin s))))
          res (info ebnf s begin-str end-str begin end)]
      res))
   ([s begin-str end-str]
@@ -118,6 +147,7 @@
 
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
+        _ (spit "first_tag" (:value tag))
         programs (groups-of s "PROGRAM " "END_PROGRAM")
         datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
         ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
@@ -166,21 +196,6 @@
       {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
     {:msg "No problem" :okay? true}))
 
-;;
-;; Know the structure of :programs, so look into all and first error that find put in "bad_input.txt"
-;; with message to user so easy to look at it
-;; At lowest level always returning [msg value] - so print the msg and output the value to file 
-;;
-(defn err-from-programs [programs]
-  (println (count programs))
-  (let [{:keys [msg value]} (find-problem "TAG" (-> programs last :tag))]
-    (do
-      (println (pp-str msg))
-      (err->out value))
-    (do
-      (println "All fine")
-      (err->out "All fine"))))
-
 (defn errors-from-controller [controller]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         tag-problem (-> controller :tag tag-problem-finder-fn)
@@ -193,6 +208,11 @@
         (println "All fine")
         (err->out "All fine")))))
 
+;;
+;; Know the structure of :programs, so look into all and first error that find put in "bad_input.txt"
+;; with message to user so easy to look at it
+;; At lowest level always returning [msg value] - so print the msg and output the value to file 
+;;
 (defn errors-from-programs [programs]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         routine-problem-finder-fn (partial find-problem "ROUTINE")
