@@ -117,25 +117,21 @@
   ([s begin-str end-str]
    (first-of nil s begin-str end-str)))
 
-(defn old-break-up [s]
-  (let [datatypes (groups-of nil s "DATATYPE " "END_DATATYPE")
-        modules (groups-of nil s "MODULE " "END_MODULE")
-        tag (first-of nil s "TAG" "END_TAG")
-        routines (groups-of nil s "ROUTINE " "END_ROUTINE")
-        res (concat datatypes modules [tag] routines)]
-    res))
-
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         ;_ (spit "first_tag" (:value tag))
         programs (groups-of s "PROGRAM" "END_PROGRAM")
         datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
         modules (groups-of (slurp "module.bnf") s "MODULE" "END_MODULE")
+        configs (groups-of (slurp "config.bnf") s "CONFIG" "END_CONFIG")
+        tasks (groups-of (slurp "task.bnf") s "TASK" "END_TASK")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
         res {:tag       tag
              :programs  programs
              :datatypes datatypes
              :modules   modules
+             :configs   configs
+             :tasks     tasks
              ;:add-on-instructions add-on-instructions
              }]
     res))
@@ -147,18 +143,6 @@
         res {:tag tag
              :routines routines}]
     res))
-
-(defn usual-x [ebnf input]
-  (let [res (parse-many-first ebnf input)]
-    (pp/pprint res)))
-
-(defn group-parser [groups group-name ebnf]
-  (let [blocks (filter #(= (:name %) group-name) groups)
-        my-parser (partial parse-one-only ebnf)
-        _ (assert (seq blocks) (str "None found for " group-name))
-        code-blocks (map #(-> % :value (str/replace #"\t" "        ") my-parser) blocks)
-        ]
-    code-blocks))
 
 (defn pp-str [x] (-> x pp/pprint with-out-str))
 
@@ -194,12 +178,16 @@
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         datatype-problem-finder-fn (partial find-problem-from-coll "DATATYPE")
         module-problem-finder-fn (partial find-problem-from-coll "MODULE")
+        config-problem-finder-fn (partial find-problem-from-coll "CONFIG")
+        task-problem-finder-fn (partial find-problem-from-coll "TASK")
 
         potential-tag-problem (-> controller :tag tag-problem-finder-fn)
         potential-datatype-problem (-> controller :datatypes datatype-problem-finder-fn)
         potential-module-problem (-> controller :modules module-problem-finder-fn)
+        potential-config-problem (-> controller :configs config-problem-finder-fn)
+        potential-task-problem (-> controller :tasks task-problem-finder-fn)
 
-        current-potential potential-module-problem
+        current-potential potential-task-problem
         ]
     (if (-> current-potential :okay? not)
       (do
@@ -242,32 +230,3 @@
     #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
       (err->out (-> first-program :tag :value)))))
-
-(defn x-old []
-  (let [groups (old-break-up prod-input)
-        ms (group-parser groups "TAG" (slurp "tag.bnf"))
-        results (map :res ms)
-        first-bad-result (some #(when (:reason %) %) results)]
-    (if first-bad-result
-      (do
-        (spit "output.txt" (pp-str first-bad-result))
-        (spit "bad_input.txt" (-> ms first :input)))
-      (do
-        (spit "output.txt" (pp-str results))
-        (spit "bad_input.txt" "All clear")))))
-
-(defn x-old-old []
-  (let [groups (old-break-up prod-input)
-        display-results (map #(vector (:name %) (:begin %) (:end %)) groups)
-        tags (filter #(= (:name %) "TAG") groups)
-        program-tags (:value (first tags))
-        nicer-program-tags (str/replace program-tags #"\t" "        ")
-        [res msg] (parse-one-only (slurp "tag.bnf") nicer-program-tags)
-        ]
-    ;(println program-tags)
-    ;(pp/pprint res)
-    (when (:reason res)
-      (do
-        (println (str "See bad_input.txt line: " (:line res) ", column: " (:column res)))
-        (spit "bad_input.txt" nicer-program-tags)))
-    (when msg (println msg))))
