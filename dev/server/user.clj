@@ -1,7 +1,8 @@
 (ns user
-  (:require [clojure.string :as str]
-            [instaparse.core :as insta]
-            [clojure.pprint :as pp]))
+  (:require [instaparse.core :as insta]
+            [clojure.pprint :as pp]
+            [utils :as u]
+            [clojure.string :as str]))
 
 (defn r []
   (require 'user :reload))
@@ -53,36 +54,15 @@
   (let [res (parse-one-only ebnf input)]
     (pp/pprint res)))
 
-(defn whitespace? [^Character c]
-  (or (= c "\\n") (= c "##r") (= c ' ') (= c \t)))
-
-(defn whole-word-index-of [^CharSequence s value ^long from-index]
-  (let [res (str/index-of s value from-index)
-        ]
-    (if (nil? res)
-      nil
-      (let [just-before (first (take 1 (drop (dec res) s)))
-            whitespace-before? (whitespace? just-before)
-            end-res (+ res (count value))
-            just-after (first (take 1 (drop end-res s)))
-            whitespace-after? (whitespace? just-after)
-            whole-word? (and whitespace-before? whitespace-after?)
-            _ (println (str value " <" just-before "," just-after ">"))
-            _ (println (str "whitespacers: " (whitespace? just-before) "," (whitespace? just-after)))
-            ]
-        (if whole-word?
-          res
-          (whole-word-index-of s value end-res))))))
-
 (defn test-whole-word []
   (let [s prod-input 
-        want "PROGRAM"
-        res (whole-word-index-of s want 0)]
+        want "TAG"
+        res (u/whole-word-index-of s want 0)]
     res))
 
 (defn indexes-of [s value]
   (loop [acc [] idx 0]
-    (let [res (whole-word-index-of s value idx)]
+    (let [res (u/whole-word-index-of s value idx)]
       (if (nil? res)
         acc
         (recur (conj acc res) (inc res))))))
@@ -127,11 +107,11 @@
    (let [_ (assert s)
          _ (assert begin-str)
          _ (assert end-str)
-         begin (str/index-of s begin-str)
+         begin (u/whole-word-index-of s begin-str 0)
          _ (assert begin (str "No begin-str found: <" begin-str "> in: <" (vec (take 150 s)) ">"))
-         end (str/index-of s end-str)
+         end (u/whole-word-index-of s end-str 0)
          _ (assert (> end begin) (str "Begin must be before end: " begin " " end))
-         _ (println "begin end " begin " " end ": " (vec (take 150 (drop begin s))))
+         ;_ (println "begin end " begin " " end ": " (vec (take 150 (drop begin s))))
          res (info ebnf s begin-str end-str begin end)]
      res))
   ([s begin-str end-str]
@@ -148,8 +128,8 @@
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         _ (spit "first_tag" (:value tag))
-        programs (groups-of s "PROGRAM " "END_PROGRAM")
-        datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE " "END_DATATYPE")
+        programs (groups-of s "PROGRAM" "END_PROGRAM")
+        datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
         ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
         res {:tag       tag
@@ -186,6 +166,10 @@
   (assert v)
   (spit "bad_input.txt" v))
 
+(defn err->out-debug [v msg]
+  (assert v msg)
+  (spit "bad_input.txt" v))
+
 (defn find-problem [name m]
   (assert (= (:name m) name) (str "Name found is not " name " but <" (:name m) "> SEE: " (vec m)))
   (if (:err? m)
@@ -200,10 +184,10 @@
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         tag-problem (-> controller :tag tag-problem-finder-fn)
         ]
-    (if tag-problem
+    (if (-> tag-problem :okay? not)
       (do
         (println (pp-str (:msg tag-problem)))
-        (err->out (:value tag-problem)))
+        (err->out-debug (:value tag-problem) (str "No value: " (keys tag-problem))))
       (do
         (println "All fine")
         (err->out "All fine")))))

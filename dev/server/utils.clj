@@ -1,7 +1,29 @@
-(ns utils)
+(ns utils
+  (:require [clojure.string :as str]))
 
 (defn r []
   (require 'utils :reload))
+
+(defn whitespace? [^Character c]
+  (or (= c \newline) (= c \return) (= c \space) (= c \tab)))
+
+(defn whole-word-index-of [^CharSequence s value ^long from-index]
+  (let [res (str/index-of s value from-index)
+        ]
+    (if (nil? res)
+      nil
+      (let [just-before (first (take 1 (drop (dec res) s)))
+            whitespace-before? (whitespace? just-before)
+            end-res (+ res (count value))
+            just-after (first (take 1 (drop end-res s)))
+            whitespace-after? (whitespace? just-after)
+            whole-word? (and whitespace-before? whitespace-after?)
+            ;_ (println (str value " <" just-before "," just-after ">"))
+            ;_ (println (str "whitespacers: " (whitespace? just-before) "," (whitespace? just-after)))
+            ]
+        (if whole-word?
+          res
+          (whole-word-index-of s value end-res))))))
 
 (defn rm-punctuation [in-str]
   (apply str (remove #{\. \? \!} in-str)))
