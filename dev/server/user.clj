@@ -127,7 +127,7 @@
 
 (defn break-up-controller [s]
   (let [tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
-        _ (spit "first_tag" (:value tag))
+        ;_ (spit "first_tag" (:value tag))
         programs (groups-of s "PROGRAM" "END_PROGRAM")
         datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
         ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
@@ -171,6 +171,7 @@
   (spit "bad_input.txt" v))
 
 (defn find-problem [name m]
+  (assert (map? m))
   (assert (= (:name m) name) (str "Name found is not " name " but <" (:name m) "> SEE: " (vec m)))
   (if (:err? m)
     (let [res (-> m :parsed-value :res)
@@ -180,14 +181,26 @@
       {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
     {:msg "No problem" :okay? true}))
 
+(defn find-problem-from-coll [name c]
+  (let [potential-problems (map #(find-problem name %) c)
+        bad-problem (some #(when-not (:okay? %) %) potential-problems)
+        ;_ (println "Got " bad-problem)
+        ]
+    (if bad-problem
+      bad-problem
+      {:msg "No problem" :okay? true})))
+
 (defn errors-from-controller [controller]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
-        tag-problem (-> controller :tag tag-problem-finder-fn)
+        datatype-problem-finder-fn (partial find-problem-from-coll "DATATYPE")
+        potential-tag-problem (-> controller :tag tag-problem-finder-fn)
+        potential-datatype-problem (-> controller :datatypes datatype-problem-finder-fn)
+        current-potential potential-datatype-problem
         ]
-    (if (-> tag-problem :okay? not)
+    (if (-> current-potential :okay? not)
       (do
-        (println (pp-str (:msg tag-problem)))
-        (err->out-debug (:value tag-problem) (str "No value: " (keys tag-problem))))
+        (println (pp-str (:msg current-potential)))
+        (err->out-debug (:value current-potential) (str "No value: " (keys current-potential))))
       (do
         (println "All fine")
         (err->out "All fine")))))

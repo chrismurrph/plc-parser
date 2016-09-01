@@ -14,7 +14,7 @@ variable = #'[0-9a-zA-Z_]+' array-dimension ?
 quote = '\"'
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[<>(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[%<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
