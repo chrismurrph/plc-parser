@@ -3,8 +3,8 @@
 data-fills = (whitespace data-fill <newline>) +
 data-fill = normal-fill | bit-fill | custom-fill
 normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
-bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer whitespace enclosure ? ending-op
-custom-fill = custom-type whitespace variable ending-op
+bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer (whitespace enclosure) ? ending-op
+custom-fill = custom-type whitespace variable (whitespace enclosure) ? ending-op
 array-dimension = <'['> integer <']'>
 integer = '-' ? #'[0-9]+'
 base-number = integer '#' word
@@ -14,7 +14,7 @@ variable = #'[0-9a-zA-Z_]+' array-dimension ?
 quote = '\"'
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[%<>(),$=\:.\\0-9a-zA-Z_-]+'
+anything-word = #'[!?%<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
 one-or-more-words = (word whitespace) * word
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
@@ -28,6 +28,6 @@ any-assign-comma = any-assign ',' newline whitespace
 any-assigns = any-assign-comma * any-assign
 enclosure = '(' any-assigns ')'
 raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING"
-custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1"
+custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "STR_462" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "OB32" | "IB32" | "IF16" | "DO32" | "DI32"
 bit-variable = variable
 newline = <'\r' ? '\n'>
