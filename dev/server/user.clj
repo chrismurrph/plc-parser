@@ -130,12 +130,12 @@
         ;_ (spit "first_tag" (:value tag))
         programs (groups-of s "PROGRAM" "END_PROGRAM")
         datatypes (groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
-        ;modules (groups-of (slurp "module.bnf") s "MODULE " "END_MODULE")
+        modules (groups-of (slurp "module.bnf") s "MODULE" "END_MODULE")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
         res {:tag       tag
              :programs  programs
              :datatypes datatypes
-             ;:modules   modules
+             :modules   modules
              ;:add-on-instructions add-on-instructions
              }]
     res))
@@ -193,9 +193,13 @@
 (defn errors-from-controller [controller]
   (let [tag-problem-finder-fn (partial find-problem "TAG")
         datatype-problem-finder-fn (partial find-problem-from-coll "DATATYPE")
+        module-problem-finder-fn (partial find-problem-from-coll "MODULE")
+
         potential-tag-problem (-> controller :tag tag-problem-finder-fn)
         potential-datatype-problem (-> controller :datatypes datatype-problem-finder-fn)
-        current-potential potential-datatype-problem
+        potential-module-problem (-> controller :modules module-problem-finder-fn)
+
+        current-potential potential-module-problem
         ]
     (if (-> current-potential :okay? not)
       (do
