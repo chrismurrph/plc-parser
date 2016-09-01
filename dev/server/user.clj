@@ -148,9 +148,11 @@
 
 (defn break-up-add-on-instruction [s]
   (let [_ (assert s)
+        parameters (first-of (slurp "parameters.bnf") s "PARAMETERS" "END_PARAMETERS")
         local-tags (first-of (slurp "tag.bnf") s "LOCAL_TAGS" "END_LOCAL_TAGS")
         routines (first-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
-        res {:local-tags local-tags
+        res {:parameters parameters
+             :local-tags local-tags
              :routines routines}]
     res))
 
@@ -234,11 +236,13 @@
 (defn errors-from-instructions [instructions]
   (let [tag-problem-finder-fn (partial find-problem-from-coll "LOCAL_TAGS")
         routine-problem-finder-fn (partial find-problem "ROUTINE")
+        parameters-problem-finder-fn (partial find-problem "PARAMETERS")
         tag-problems (remove #(-> % :okay?) (map #(-> % :tag tag-problem-finder-fn) instructions))
         ;_ (assert (empty? tag-problems))
-        routine-problems (remove #(-> % :okay?) (map #(-> % :routines routine-problem-finder-fn) instructions))
+        ;routine-problems (remove #(-> % :okay?) (map #(-> % :routines routine-problem-finder-fn) instructions))
         ;_ (assert (empty? routine-problems))
-        examining-problem (first routine-problems)
+        parameters-problems (remove #(-> % :okay?) (map #(-> % :parameters parameters-problem-finder-fn) instructions))
+        examining-problem (first parameters-problems)
         ]
     (if examining-problem
       (do
