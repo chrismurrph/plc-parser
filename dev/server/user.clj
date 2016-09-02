@@ -2,10 +2,50 @@
   (:require [instaparse.core :as insta]
             [clojure.pprint :as pp]
             [utils :as u]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.zip :as zip]))
 
 (defn r []
   (require 'user :reload))
+
+;;
+;;      A
+;;     / \
+;;    B   C
+;;   /\    \
+;;  D  E    F
+;;
+
+(def example-given '(A (B (D) (E)) (C (F))))
+(def example [:a [:b [:d] [:e]] [:c [:f]]])
+
+(def structure [{:name :controller :cardinality :one}
+                [{:name :tag :cardinality :one :bnf "tag.bnf" :tag "TAG"}]
+                [{:name :program :cardinality :many :tag "PROGRAM"}
+                 [[{:name :tag :cardinality :one :bnf "tag.bnf"}]
+                  [{:name :routine :cardinality :many :bnf "routine.bnf"}]]]
+                [{:name :datatypes :cardinality :many :bnf "datatype.bnf" :tag "DATATYPE"}]
+                [{:name :modules :cardinality :many :bnf "module.bnf" :tag "MODULE"}]
+                [{:name :config :cardinality :many :bnf "config.bnf" :tag "CONFIG"}]
+                [{:name :task :cardinality :many :bnf "task.bnf" :tag "TASK"}]
+                [{:name :trend :cardinality :many :bnf "trend.bnf" :tag "TREND"}]
+                [{:name :add-on-instruction :cardinality :many :tag "ADD_ON_INSTRUCTION_DEFINITION"}
+                 [[{:name :parameters :cardinality :one :bnf "parameters.bnf"}]
+                  [{:name :local-tags :cardinality :one :bnf "tag.bnf"}]
+                  [{:name :routine :cardinality :one :bnf "routine.bnf"}]]]])
+
+(def z (zip/vector-zip example))
+(def locs (take-while (complement zip/end?) (iterate zip/next z)))
+
+(defn parent-of [loc]
+  (when-let [parent-loc (-> loc zip/up zip/left)]
+    (zip/node parent-loc)))
+
+(defn visit-all []
+  (doseq [loc locs]
+    (let [node (zip/node loc)]
+      (when (keyword? node)
+        (println node "has parent" (parent-of loc))))))
 
 ;(def everything-ebnf (slurp "parser.bnf"))
 ;(def tag-ebnf (slurp "tag.bnf"))
@@ -44,18 +84,8 @@
         _ (assert res (str "No result"))]
     {:res res :msg nil}))
 
-(defn two-x [ebnf input]
-  (let [[msg [one two]] (parse-many-first ebnf input)]
-    (spit "one.txt" (with-out-str (pp/pprint one)))
-    (spit "two.txt" (with-out-str (pp/pprint two)))
-    (println msg)))
-
-(defn one-x [ebnf input]
-  (let [res (parse-one-only ebnf input)]
-    (pp/pprint res)))
-
 (defn test-whole-word []
-  (let [s prod-input 
+  (let [s prod-input
         want "TAG"
         res (u/whole-word-index-of s want 0)]
     res))
@@ -99,7 +129,7 @@
          res (map #(info ebnf s begin-str end-str %1 %2) begins ends)]
      res))
   ([s begin-str end-str]
-    (groups-of nil s begin-str end-str)))
+   (groups-of nil s begin-str end-str)))
 
 ;; Used when there is only one
 (defn first-of
@@ -127,14 +157,14 @@
         tasks (groups-of (slurp "task.bnf") s "TASK" "END_TASK")
         trends (groups-of (slurp "trend.bnf") s "TREND" "END_TREND")
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
-        res {:tag       tag
-             :programs  programs
+        res {:tag                 tag
+             :programs            programs
              :add-on-instructions add-on-instructions
-             :datatypes datatypes
-             :modules   modules
-             :configs   configs
-             :tasks     tasks
-             :trends    trends
+             :datatypes           datatypes
+             :modules             modules
+             :configs             configs
+             :tasks               tasks
+             :trends              trends
              }]
     res))
 
@@ -142,7 +172,7 @@
   (let [_ (assert s)
         tag (first-of (slurp "tag.bnf") s "TAG" "END_TAG")
         routines (groups-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
-        res {:tag tag
+        res {:tag      tag
              :routines routines}]
     res))
 
@@ -153,7 +183,7 @@
         routines (first-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
         res {:parameters parameters
              :local-tags local-tags
-             :routines routines}]
+             :routines   routines}]
     res))
 
 (defn pp-str [x] (-> x pp/pprint with-out-str))
@@ -252,7 +282,7 @@
         (println "All fine")
         (err->out "All fine")))))
 
-(defn x []
+(defn x-check []
   (let [controller (break-up-controller prod-input)
         programs (:programs controller)
         instructions (:add-on-instructions controller)
@@ -265,4 +295,7 @@
     (errors-from-instructions broken-up-instructions)
     #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
-      (err->out (-> first-program :tag :value)))))
+        (err->out (-> first-program :tag :value)))))
+
+(defn x []
+  (visit-all))
