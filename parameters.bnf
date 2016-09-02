@@ -1,2 +1,30 @@
 <S> = parameters
-<parameters> = #"PARAMETERS[\s\S]*?END_PARAMETERS"
+quote = '\"'
+float = #'[-+]?[0-9]*\.[0-9]+'
+integer = '-' ? #'[0-9]+'
+array-dimension = <'['> integer <']'>
+variable = #'[0-9a-zA-Z_]+' array-dimension ?
+newline = <'\r' ? '\n'>
+assign-op = ':='
+ending-op = ';'
+anything-word = #'[+/\'<>(),$=\:.\\0-9a-zA-Z_-]+'
+one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
+anything-string = quote one-or-more-anythings quote
+radix-type = "Float" | "Decimal"
+tag-radix-assign = "RADIX" whitespace assign-op whitespace radix-type
+tag-description-assign = "Description" whitespace assign-op whitespace anything-string
+usage-assign = "Usage" whitespace assign-op whitespace ("Input" | "Output")
+required-assign = "Required" whitespace assign-op whitespace ("Yes" | "No")
+visible-assign = "Visible" whitespace assign-op whitespace ("Yes" | "No")
+engineering-float-data-number = float ('e+' | 'e-') integer (newline whitespace) ?
+default-data-assign = "DefaultData" whitespace assign-op whitespace (engineering-float-data-number | integer)
+external-access-assign = "ExternalAccess" whitespace assign-op whitespace ( "Read Only" | "Read/Write" )
+parameter-enclosure-assign = tag-description-assign | usage-assign | tag-radix-assign | required-assign | visible-assign
+| default-data-assign | external-access-assign
+enclosure = '(' (parameter-enclosure-assign ',' newline whitespace) * parameter-enclosure-assign ');'
+<whitespace> = <#'\s+'>
+word = #'[.\\0-9a-zA-Z_-]+'
+raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE"
+definition = word whitespace ":" whitespace raw-type whitespace enclosure <newline> whitespace
+definitions = definition +
+<parameters> = <"PARAMETERS"> whitespace definitions <"END_PARAMETERS">

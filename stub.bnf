@@ -1,0 +1,2 @@
+<S> = parameters
+<parameters> = #"PARAMETERS[\s\S]*?END_PARAMETERS"

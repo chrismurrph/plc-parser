@@ -58,4 +58,3 @@ base-two-data-number = "2#" integer (newline whitespace) ?
 engineering-float-data-number = float ('e+' | 'e-') integer (newline whitespace) ?
 integer-data-number = integer (newline whitespace) ?
 tag = "TAG" <newline whitespace> definitions "END_TAG"
-
