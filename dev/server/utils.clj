@@ -1,8 +1,11 @@
 (ns utils
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.pprint :as pp]))
 
 (defn r []
   (require 'utils :reload))
+
+(defn pp-str [x] (-> x pp/pprint with-out-str))
 
 ;
 ; s and value never change but from-index is recursed, so can use loop recur on just that
