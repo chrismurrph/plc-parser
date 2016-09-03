@@ -22,30 +22,58 @@
 (def structure [{:name :controller :cardinality :one}
                 [{:name :tag :cardinality :one :bnf "tag.bnf" :tag "TAG"}]
                 [{:name :program :cardinality :many :tag "PROGRAM"}
-                 [[{:name :tag :cardinality :one :bnf "tag.bnf"}]
-                  [{:name :routine :cardinality :many :bnf "routine.bnf"}]]]
+                 [{:name :tag :cardinality :one :bnf "tag.bnf"}
+                  {:name :routine :cardinality :many :bnf "routine.bnf"}]]
                 [{:name :datatypes :cardinality :many :bnf "datatype.bnf" :tag "DATATYPE"}]
                 [{:name :modules :cardinality :many :bnf "module.bnf" :tag "MODULE"}]
                 [{:name :config :cardinality :many :bnf "config.bnf" :tag "CONFIG"}]
                 [{:name :task :cardinality :many :bnf "task.bnf" :tag "TASK"}]
                 [{:name :trend :cardinality :many :bnf "trend.bnf" :tag "TREND"}]
                 [{:name :add-on-instruction :cardinality :many :tag "ADD_ON_INSTRUCTION_DEFINITION"}
-                 [[{:name :parameters :cardinality :one :bnf "parameters.bnf"}]
-                  [{:name :local-tags :cardinality :one :bnf "tag.bnf"}]
-                  [{:name :routine :cardinality :one :bnf "routine.bnf"}]]]])
+                 [{:name :parameters :cardinality :one :bnf "parameters.bnf"}
+                  {:name :local-tags :cardinality :one :bnf "tag.bnf"}
+                  {:name :routine :cardinality :one :bnf "routine.bnf"}]]])
 
-(def z (zip/vector-zip example))
+(def z (zip/vector-zip structure))
 (def locs (take-while (complement zip/end?) (iterate zip/next z)))
 
 (defn parent-of [loc]
-  (when-let [parent-loc (-> loc zip/up zip/left)]
+  (when-let [parent-loc (-> loc zip/up zip/up first)]
     (zip/node parent-loc)))
 
-(defn visit-all []
+#_(defn visit-all []
   (doseq [loc locs]
     (let [node (zip/node loc)]
       (when (keyword? node)
         (println node "has parent" (parent-of loc))))))
+
+(defn subtree-to-change? [loc]
+  (let [node (zip/node loc)]
+    (and (map? node) (= :many (:cardinality node)))))
+
+(defn modify-subtree [loc]
+  (zip/edit loc assoc :value "Hi!"))
+
+(defn modify-all [z]
+  (loop [loc z]
+    (if (zip/end? loc)
+      (zip/root loc)
+      (recur (zip/next
+               (cond (subtree-to-change? loc) (modify-subtree loc)
+                     :else loc))))))
+
+(defn from-loc [loc]
+  (let [node (zip/node loc)]
+    (if (map? node)
+      {:node node :parent (parent-of loc)}
+      nil)))
+
+(defn visit-all [z]
+  (loop [loc z results []]
+    (if (zip/end? loc)
+      (remove nil? results)
+      (recur (zip/next loc) (conj results (from-loc loc))))))
+
 
 ;(def everything-ebnf (slurp "parser.bnf"))
 ;(def tag-ebnf (slurp "tag.bnf"))
@@ -298,4 +326,4 @@
         (err->out (-> first-program :tag :value)))))
 
 (defn x []
-  (visit-all))
+  (pp/pprint (visit-all (zip/vector-zip (modify-all z)))))
