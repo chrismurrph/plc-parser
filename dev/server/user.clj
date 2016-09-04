@@ -4,7 +4,8 @@
             [clojure.zip :as zip]))
 
 (defn r []
-  (require 'user :reload))
+  (require 'user :reload)
+  (require 'parsing :reload))
 
 ;;
 ;;      A
@@ -20,21 +21,21 @@
 (def structure [{:name :controller :cardinality :one}
                 [{:name :tag :cardinality :one :bnf "tag" :tag "TAG"}]
                 [{:name :program :cardinality :many :tag "PROGRAM"}
-                 [{:name :tag :cardinality :one :bnf "tag"}
-                  {:name :routine :cardinality :many :bnf "routine"}]]
+                 [{:name :tag :cardinality :one :bnf "tag" :tag "TAG"}
+                  {:name :routine :cardinality :many :bnf "routine" :tag "ROUTINE"}]]
                 [{:name :datatypes :cardinality :many :bnf "datatype" :tag "DATATYPE"}]
                 [{:name :modules :cardinality :many :bnf "module" :tag "MODULE"}]
                 [{:name :config :cardinality :many :bnf "config" :tag "CONFIG"}]
                 [{:name :task :cardinality :many :bnf "task" :tag "TASK"}]
                 [{:name :trend :cardinality :many :bnf "trend" :tag "TREND"}]
                 [{:name :add-on-instruction :cardinality :many :tag "ADD_ON_INSTRUCTION_DEFINITION"}
-                 [{:name :parameters :cardinality :one :bnf "parameters"}
-                  {:name :local-tags :cardinality :one :bnf "tag"}
-                  {:name :routine :cardinality :one :bnf "routine"}]]])
+                 [{:name :parameters :cardinality :one :bnf "parameters" :tag "PARAMETERS"}
+                  {:name :local-tags :cardinality :one :bnf "tag" :tag "LOCAL_TAGS"}
+                  {:name :routine :cardinality :one :bnf "routine" :tag "ROUTINE"}]]])
 
 (def z (zip/vector-zip structure))
 (def locs (take-while (complement zip/end?) (iterate zip/next z)))
-(def testing? false)
+(def testing? true)
 
 (defn shorten-result [x]
   (if testing?
@@ -45,7 +46,7 @@
     x))
 
 (defn parent-of [loc]
-  (some-> loc zip/up zip/up first zip/node (update :result shorten-result)))
+  (some-> loc zip/up zip/up first zip/node #_(update :result shorten-result)))
 
 (defn has-children? [loc]
   (some-> (zip/right loc) zip/node vector?))
@@ -61,7 +62,7 @@
         parent (parent-of loc)
         is-map? (map? node)
         res? (and is-map? (some-> parent :result string?))
-        _ (when res? (println res? "for top level" (:name node)))
+        ;_ (when res? (println res? "for top level" (:name node)))
         ]
     res?))
 
@@ -99,7 +100,7 @@
         parent (parent-of loc)
         is-map? (map? node)
         res? (and is-map? (some-> parent :result many-many-of?))
-        _ (when (and res? is-map?) (println res? "for third level" node-name))
+        ;_ (when (and res? is-map?) (println res? "for third level" node-name))
         ]
     res?))
 
@@ -107,11 +108,15 @@
   (let [{:keys [name bnf tag cardinality]} (zip/node loc-ref)
         start-str tag
         end-str (str "END_" tag)
-        _ (println "name: " bnf "for" name)
+        ;_ (println "name: " bnf "for" name)
         ebnf (some-> bnf (str ".bnf") slurp)
-        s (:result (parent-of loc-ref))
-        break-up-parse-fn (if (= cardinality :many) par/groups-of par/first-of)
-        res (break-up-parse-fn ebnf start-str end-str s)]
+        parent (parent-of loc-ref)
+        _ (println (type (:result parent)))
+        s (:result parent)
+        _ (assert (string? s) (str "Not string for " name))
+        res (if (= cardinality :many)
+              (par/groups-of ebnf start-str end-str "break-into-parse" s)
+              (par/first-of ebnf start-str end-str "break-into-parse" s))]
     res))
 
 ;;
@@ -123,13 +128,17 @@
 (defn break-into-many-parse [loc-ref many-many?]
   (let [{:keys [name bnf tag cardinality]} (zip/node loc-ref)
         end-str (str "END_" tag)
-        ;_ (println "name: " bnf "for" name)
+        _ (assert tag (str "No tag found for " name))
+        _ (println "name: " bnf "for" name "many-many? " many-many? "tag: " tag)
         ebnf (some-> bnf (str ".bnf") slurp)
         xs (:result (parent-of loc-ref))
+        ;_ (println "xs:" xs)
         _ (assert (coll? xs))
-        break-up-parse-fn (if (= cardinality :many) par/groups-of par/first-of)
-        mapping-fn (partial break-up-parse-fn ebnf tag end-str)
-        res (map mapping-fn (if many-many? (mapcat identity xs) (map mapping-fn xs)))]
+        break-up-parse-fn (if many-many? par/groups-of par/first-of)
+        mapping-fn (partial break-up-parse-fn ebnf tag end-str "break-into-many-parse")
+        res (map mapping-fn (if many-many?
+                              (map #(-> % :value mapping-fn) xs)
+                              (map #(-> % :value mapping-fn) xs)))]
     res))
 
 (defn check [res]
@@ -157,14 +166,17 @@
   (let [node (zip/node loc)]
     (if (map? node)
       (let [res (:result node)]
-        (keys res))
+        (cond
+          (map? res) (keys res)
+          (string? res) (apply str (vec (take 150 res)))
+          :default (map keys res)))
       nil)))
 
 (defn visit-all [z]
   (loop [loc z results []]
     (if (zip/end? loc)
       (remove nil? results)
-      (recur (zip/next loc) (conj results (from-loc loc))))))
+      (recur (zip/next loc) (conj results (check-loc loc))))))
 
 (def prod-input (slurp "prod_input.L5K"))
 

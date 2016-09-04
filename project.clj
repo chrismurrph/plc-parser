@@ -15,6 +15,9 @@
   :clean-targets ^{:protect false} ["target"]
   :source-paths ["dev/server"]
 
+  ;:repl-options {:init (do (require 'clj-stacktrace.repl))
+  ;               :caught clj-stacktrace.repl/pst+}
+
   :profiles {
              :dev {
                    :repl-options {

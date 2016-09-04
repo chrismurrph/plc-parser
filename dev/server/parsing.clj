@@ -76,22 +76,24 @@
      :err?         err?}))
 
 (defn groups-of
-  ([ebnf begin-str end-str s]
-   (let [begins (indexes-of s begin-str)
+  ([ebnf begin-str end-str debug s]
+   (let [_ (assert s)
+         _ (assert begin-str)
+         ;_ (assert (string? s) (str "groups-of not getting string for <" begin-str "> is <" s "> type " (type s) "called from" debug))
+         begins (indexes-of s begin-str)
          ends (indexes-of s end-str)
          num-begins (count begins)
          num-ends (count ends)
          _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
          res (map #(info ebnf s begin-str end-str %1 %2) begins ends)]
-     res))
-  ([begin-str end-str s]
-   (groups-of nil begin-str end-str s)))
+     res)))
 
 ;; Used when there is only one
 (defn first-of
-  ([ebnf begin-str end-str s]
+  ([ebnf begin-str end-str debug s]
    (let [_ (assert s)
-         _ (assert begin-str (str "No begin str: <" begin-str "> <" end-str "> <" (apply str (vec (take 150 s))) ">"))
+         _ (assert (string? s) (str "Not string but: " (type s)))
+         _ (assert begin-str (str "No begin str: <" begin-str "> <" end-str "> <" (apply str (vec (take 150 s)))))
          _ (assert end-str)
          begin (u/whole-word-index-of s begin-str 0)
          _ (assert begin (str "No begin-str found: <" begin-str "> in:- <" (apply str (vec (take 150 s))) ">"))
@@ -99,9 +101,7 @@
          _ (assert (> end begin) (str "Begin must be before end: " begin " " end))
          ;_ (println "begin end " begin " " end ": " (vec (take 150 (drop begin s))))
          res (info ebnf s begin-str end-str begin end)]
-     res))
-  ([begin-str end-str s]
-   (first-of nil begin-str end-str s)))
+     res)))
 
 (defn find-problem [name m]
   (assert (map? m))
