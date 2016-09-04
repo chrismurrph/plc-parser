@@ -74,14 +74,14 @@
 (def prod-input (slurp "prod_input.L5K"))
 
 (defn break-up-controller [s]
-  (let [tag (par/first-of (slurp "tag.bnf") s "TAG" "END_TAG")
-        programs (par/groups-of s "PROGRAM" "END_PROGRAM")
-        add-on-instructions (par/groups-of s "ADD_ON_INSTRUCTION_DEFINITION" "END_ADD_ON_INSTRUCTION_DEFINITION")
-        datatypes (par/groups-of (slurp "datatype.bnf") s "DATATYPE" "END_DATATYPE")
-        modules (par/groups-of (slurp "module.bnf") s "MODULE" "END_MODULE")
-        configs (par/groups-of (slurp "config.bnf") s "CONFIG" "END_CONFIG")
-        tasks (par/groups-of (slurp "task.bnf") s "TASK" "END_TASK")
-        trends (par/groups-of (slurp "trend.bnf") s "TREND" "END_TREND")
+  (let [tag (par/first-of (slurp "tag.bnf") "TAG" "END_TAG" s)
+        programs (par/groups-of "PROGRAM" "END_PROGRAM" s)
+        add-on-instructions (par/groups-of "ADD_ON_INSTRUCTION_DEFINITION" "END_ADD_ON_INSTRUCTION_DEFINITION" s)
+        datatypes (par/groups-of (slurp "datatype.bnf") "DATATYPE" "END_DATATYPE" s)
+        modules (par/groups-of (slurp "module.bnf") "MODULE" "END_MODULE" s)
+        configs (par/groups-of (slurp "config.bnf") "CONFIG" "END_CONFIG" s)
+        tasks (par/groups-of (slurp "task.bnf") "TASK" "END_TASK" s)
+        trends (par/groups-of (slurp "trend.bnf") "TREND" "END_TREND" s)
         ;;add-on-instructions (groups-of (slurp "add-on-instruction.bnf") s "ADD_ON_INSTRUCTION_DEFINITION " "END_ADD_ON_INSTRUCTION_DEFINITION")
         res {:tag                 tag
              :programs            programs
@@ -96,17 +96,17 @@
 
 (defn break-up-program [s]
   (let [_ (assert s)
-        tag (par/first-of (slurp "tag.bnf") s "TAG" "END_TAG")
-        routines (par/groups-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
+        tag (par/first-of (slurp "tag.bnf") "TAG" "END_TAG" s)
+        routines (par/groups-of (slurp "routine.bnf") "ROUTINE" "END_ROUTINE" s)
         res {:tag      tag
              :routines routines}]
     res))
 
 (defn break-up-add-on-instruction [s]
   (let [_ (assert s)
-        parameters (par/first-of (slurp "parameters.bnf") s "PARAMETERS" "END_PARAMETERS")
-        local-tags (par/first-of (slurp "tag.bnf") s "LOCAL_TAGS" "END_LOCAL_TAGS")
-        routines (par/first-of (slurp "routine.bnf") s "ROUTINE" "END_ROUTINE")
+        parameters (par/first-of (slurp "parameters.bnf") "PARAMETERS" "END_PARAMETERS" s)
+        local-tags (par/first-of (slurp "tag.bnf") "LOCAL_TAGS" "END_LOCAL_TAGS" s)
+        routines (par/first-of (slurp "routine.bnf") "ROUTINE" "END_ROUTINE" s)
         res {:parameters parameters
              :local-tags local-tags
              :routines   routines}]
@@ -121,8 +121,8 @@
         broken-up-instructions (map #(-> % :value break-up-add-on-instruction) instructions)
         ]
     ;(errors-from-controller controller)
-    ;(errors-from-programs broken-up-programs)
-    (errors-from-instructions broken-up-instructions)
+    (errors-from-programs broken-up-programs)
+    ;(errors-from-instructions broken-up-instructions)
     #_(spit "output.txt" (pp-str parsed-programs))
     #_(when (-> first-program :tag :err?)
         (err->out (-> first-program :tag :value)))))

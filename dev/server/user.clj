@@ -56,14 +56,51 @@
         (when (keyword? node)
           (println node "has parent" (parent-of loc))))))
 
-(defn to-change? [loc]
+(defn top-level-change? [loc]
   (let [node (zip/node loc)
-        many? (= :many (:cardinality node))
-        parent? (has-children? loc)
         parent (parent-of loc)
         is-map? (map? node)
         res? (and is-map? (some-> parent :result string?))
-        _ (when res? (println res? "for" (:name node)))]
+        _ (when res? (println res? "for top level" (:name node)))
+        ]
+    res?))
+
+(def not-map? (complement map?))
+
+(defn many-of? [x]
+  ;(println (type x)) clojure.lang.LazySeq
+  ;(-> x not-map? seq?)
+  (instance? clojure.lang.LazySeq x)
+  )
+
+(defn many-many-of? [x]
+  ;(println (type x)) clojure.lang.LazySeq
+  ;(-> x not-map? seq?)
+  (let [first-ele (first x)
+        ;_ (println (type first-ele))
+        ]
+    (and (instance? clojure.lang.PersistentArrayMap first-ele) (instance? clojure.lang.LazySeq x)))
+  )
+
+(defn second-level-change? [loc]
+  (let [node (zip/node loc)
+        parent? (has-children? loc)
+        parent (parent-of loc)
+        is-map? (map? node)
+        res? (and is-map? (some-> parent :result many-of?))
+        ;_ (println res? "for second level" (:name node))
+        ]
+    res?))
+
+(defn third-level-change? [loc]
+  (let [node (zip/node loc)
+        node-name (:name node)
+        parent? (has-children? loc)
+        parent (parent-of loc)
+        is-map? (map? node)
+        res? (and is-map? (some-> parent :result many-many-of?))
+        _ (when (and res? is-map?) (println res? "for third level" node-name))
+        ]
     res?))
 
 (defn break-into-parse [loc-ref]
@@ -73,12 +110,31 @@
         _ (println "name: " bnf "for" name)
         ebnf (some-> bnf (str ".bnf") slurp)
         s (:result (parent-of loc-ref))
-        func (if (= cardinality :many) par/groups-of par/first-of)
-        res (func ebnf s start-str end-str)]
+        break-up-parse-fn (if (= cardinality :many) par/groups-of par/first-of)
+        res (break-up-parse-fn ebnf start-str end-str s)]
     res))
 
-(defn modify [loc]
-  (zip/edit loc assoc :result (break-into-parse loc)))
+;;
+;; Here there will be a list of parent strings that need to be parsed. For example many
+;; programs. In the case of tags this will produce many tags. In the case of routine this
+;; will produce many of many routines, because there are many routines per program.
+;; However what is returned is just a flattened list, that can be examined for problems
+;;
+(defn break-into-many-parse [loc-ref many-many?]
+  (let [{:keys [name bnf tag cardinality]} (zip/node loc-ref)
+        end-str (str "END_" tag)
+        ;_ (println "name: " bnf "for" name)
+        ebnf (some-> bnf (str ".bnf") slurp)
+        xs (:result (parent-of loc-ref))
+        _ (assert (coll? xs))
+        break-up-parse-fn (if (= cardinality :many) par/groups-of par/first-of)
+        mapping-fn (partial break-up-parse-fn ebnf tag end-str)
+        res (map mapping-fn (if many-many? (mapcat identity xs) (map mapping-fn xs)))]
+    res))
+
+(defn check [res]
+  (println "To check a " (type res))
+  res)
 
 (defn modify-all [z]
   (loop [loc z]
@@ -86,13 +142,22 @@
       (zip/root loc)
       (recur (zip/next
                (cond
-                 (to-change? loc) (modify loc)
+                 (third-level-change? loc) (zip/edit loc assoc :result (break-into-many-parse loc true))
+                 (second-level-change? loc) (zip/edit loc assoc :result (break-into-many-parse loc false))
+                 (top-level-change? loc) (zip/edit loc assoc :result (break-into-parse loc))
                  :else loc))))))
 
 (defn from-loc [loc]
   (let [node (zip/node loc)]
     (if (map? node)
       {:node (update node :result shorten-result) :parent (parent-of loc)}
+      nil)))
+
+(defn check-loc [loc]
+  (let [node (zip/node loc)]
+    (if (map? node)
+      (let [res (:result node)]
+        (keys res))
       nil)))
 
 (defn visit-all [z]

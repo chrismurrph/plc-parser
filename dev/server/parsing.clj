@@ -65,7 +65,7 @@
         real-end (+ end (count end-str))
         value (subs s begin real-end)
         rid-tabs-value (str/replace value #"\t" "        ")
-        parsed-value (when ebnf (do-parse ebnf rid-tabs-value))
+        parsed-value (some-> ebnf (do-parse rid-tabs-value))
         ;; there should also be a msg, so that's another way finding out
         err? (if (-> parsed-value :res :reason) true false)]
     {:name         (str/trim begin-str)
@@ -76,7 +76,7 @@
      :err?         err?}))
 
 (defn groups-of
-  ([ebnf s begin-str end-str]
+  ([ebnf begin-str end-str s]
    (let [begins (indexes-of s begin-str)
          ends (indexes-of s end-str)
          num-begins (count begins)
@@ -84,24 +84,24 @@
          _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
          res (map #(info ebnf s begin-str end-str %1 %2) begins ends)]
      res))
-  ([s begin-str end-str]
-   (groups-of nil s begin-str end-str)))
+  ([begin-str end-str s]
+   (groups-of nil begin-str end-str s)))
 
 ;; Used when there is only one
 (defn first-of
-  ([ebnf s begin-str end-str]
+  ([ebnf begin-str end-str s]
    (let [_ (assert s)
-         _ (assert begin-str)
+         _ (assert begin-str (str "No begin str: <" begin-str "> <" end-str "> <" (apply str (vec (take 150 s))) ">"))
          _ (assert end-str)
          begin (u/whole-word-index-of s begin-str 0)
-         _ (assert begin (str "No begin-str found: <" begin-str "> in: <" (vec (take 150 s)) ">"))
+         _ (assert begin (str "No begin-str found: <" begin-str "> in:- <" (apply str (vec (take 150 s))) ">"))
          end (u/whole-word-index-of s end-str 0)
          _ (assert (> end begin) (str "Begin must be before end: " begin " " end))
          ;_ (println "begin end " begin " " end ": " (vec (take 150 (drop begin s))))
          res (info ebnf s begin-str end-str begin end)]
      res))
-  ([s begin-str end-str]
-   (first-of nil s begin-str end-str)))
+  ([begin-str end-str s]
+   (first-of nil begin-str end-str s)))
 
 (defn find-problem [name m]
   (assert (map? m))
