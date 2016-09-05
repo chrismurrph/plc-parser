@@ -103,18 +103,22 @@
          res (info ebnf s begin-str end-str begin end)]
      res)))
 
-(defn find-problem [name m]
+(defn find-problem
+  "Just formatting - whether there's a problem has already been worked out"
+  [name m]
   (assert (map? m))
   (assert (= (:name m) name) (str "Name found is not " name " but <" (:name m) "> SEE: " (vec m)))
-  (if (:err? m)
-    (let [res (-> m :parsed-value :res)
-          {:keys [line column reason]} res
-          input (:value m)]
-      [(str "Problem is at line " line " and col " column " b/c: " reason) input]
-      {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
-    {:msg "No problem" :okay? true}))
+  (let [res (if (:err? m)
+              (let [res (-> m :parsed-value :res)
+                    {:keys [line column reason]} res
+                    input (:value m)]
+                [(str "Problem is at line " line " and col " column " b/c: " reason) input]
+                {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
+              {:msg "No problem" :okay? true})
+        _ (when (= name "LOCAL_TAGS") (println (str "Being called for " name " and res is " res)))]
+    res))
 
-(defn find-problem-from-coll [name c]
+(defn find-one-problem-from-many [name c]
   (let [potential-problems (map #(find-problem name %) c)
         bad-problem (some #(when-not (:okay? %) %) potential-problems)
         ;_ (println "Got " bad-problem)

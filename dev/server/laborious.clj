@@ -6,12 +6,13 @@
     [clojure.zip :as zip]))
 
 (defn errors-from-controller [controller]
-  (let [tag-problem-finder-fn (partial par/find-problem "TAG")
-        datatype-problem-finder-fn (partial par/find-problem-from-coll "DATATYPE")
-        module-problem-finder-fn (partial par/find-problem-from-coll "MODULE")
-        config-problem-finder-fn (partial par/find-problem-from-coll "CONFIG")
-        task-problem-finder-fn (partial par/find-problem-from-coll "TASK")
-        trend-problem-finder-fn (partial par/find-problem-from-coll "TREND")
+  (let [
+        tag-problem-finder-fn (partial par/find-problem "TAG")
+        datatype-problem-finder-fn (partial par/find-one-problem-from-many "DATATYPE")
+        module-problem-finder-fn (partial par/find-one-problem-from-many "MODULE")
+        config-problem-finder-fn (partial par/find-one-problem-from-many "CONFIG")
+        task-problem-finder-fn (partial par/find-one-problem-from-many "TASK")
+        trend-problem-finder-fn (partial par/find-one-problem-from-many "TREND")
 
         potential-tag-problem (-> controller :tag tag-problem-finder-fn)
         potential-datatype-problem (-> controller :datatypes datatype-problem-finder-fn)
@@ -53,7 +54,7 @@
         (par/err->out "All fine")))))
 
 (defn errors-from-instructions [instructions]
-  (let [tag-problem-finder-fn (partial par/find-problem-from-coll "LOCAL_TAGS")
+  (let [tag-problem-finder-fn (partial par/find-one-problem-from-many "LOCAL_TAGS")
         routine-problem-finder-fn (partial par/find-problem "ROUTINE")
         parameters-problem-finder-fn (partial par/find-problem "PARAMETERS")
         tag-problems (remove #(-> % :okay?) (map #(-> % :tag tag-problem-finder-fn) instructions))

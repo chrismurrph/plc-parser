@@ -157,17 +157,10 @@
                  (top-level-change? loc) (zip/edit loc assoc :result (break-into-parse loc))
                  :else loc))))))
 
-(defn from-loc [loc]
-  (let [node (zip/node loc)]
-    (if (map? node)
-      {:node (update node :result shorten-result) :parent (parent-of loc)}
-      nil)))
-
 (defn my-format [x]
-  ;(println "formatting a " (type x))
-  [(type x) (when (many-of? x) (count x)) (:name x) (keys x)])
+  [(type x) (:name x) (keys x)])
 
-(defn check-loc [loc]
+(defn view-loc [loc]
   (let [node (zip/node loc)]
     (if (map? node)
       (let [res (:result node)]
@@ -178,12 +171,38 @@
           ))
       nil)))
 
+;;
+;; Returns a coll of 'what's wrong?' objects (ie maps)
+;;
+(defn check-loc [loc]
+  (let [node (zip/node loc)]
+    (if (map? node)
+      (let [res (:result node)
+            problem-finder (partial par/find-problem (:tag node))]
+        (cond
+          (map? res) (vector (problem-finder res))
+          (string? res) []
+          :default (mapv problem-finder res)
+          ))
+      [])))
+
 (defn visit-all [z]
   (loop [loc z results []]
     (if (zip/end? loc)
       results
-      (if-let [res (check-loc loc)]
+      (if-let [res (view-loc loc)]
         (let [new-results (conj results res)]
+          (recur (zip/next loc) new-results))
+        (recur (zip/next loc) results)))))
+
+(defn check-all [z]
+  (loop [loc z results []]
+    (if (zip/end? loc)
+      results
+      (if-let [potential-problems (check-loc loc)]
+        (let [
+              ;_ (println "size potential problems is " (count potential-problems))
+              new-results (concat results potential-problems)]
           (recur (zip/next loc) new-results))
         (recur (zip/next loc) results)))))
 
@@ -193,5 +212,5 @@
   (-> z zip/down (zip/edit assoc :result prod-input) zip/root zip/vector-zip))
 
 (defn x []
-  (let [res (-> z start-up modify-all zip/vector-zip visit-all)]
+  (let [res (-> z start-up modify-all zip/vector-zip check-all)]
     (when testing? (pp/pprint res))))
