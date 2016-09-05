@@ -34,17 +34,14 @@
                   {:name :local-tags :cardinality :one :bnf "local-tags" :tag "LOCAL_TAGS"}
                   {:name :routine :cardinality :one :bnf "routine" :tag "ROUTINE"}]]])
 
+(def smaller-structure
+  [{:name :controller :cardinality :one}
+   [{:name :program :cardinality :many :tag "PROGRAM"}
+    [{:name :routine :cardinality :many :bnf "routine" :tag "ROUTINE"}]]
+   ])
+
 (def z (zip/vector-zip structure))
 (def locs (take-while (complement zip/end?) (iterate zip/next z)))
-(def testing? true)
-
-(defn shorten-result [x]
-  (if testing?
-    (cond
-      (map? x) (keys x)
-      (string? x) (apply str (vec (take 60 x)))
-      :default x)
-    x))
 
 (defn parent-of [loc]
   (some-> loc zip/up zip/up first zip/node #_(update :result shorten-result)))
@@ -66,8 +63,6 @@
         ;_ (when res? (println res? "for top level" (:name node)))
         ]
     res?))
-
-(def not-map? (complement map?))
 
 (defn many-of? [x]
   ;(println (type x)) clojure.lang.LazySeq
@@ -142,10 +137,6 @@
               (map #(-> % :value mapping-fn) xs))]
     res))
 
-(defn check [res]
-  (println "To check a " (type res))
-  res)
-
 (defn modify-all [z]
   (loop [loc z]
     (if (zip/end? loc)
@@ -215,7 +206,7 @@
 (defn start-up [z]
   (-> z zip/down (zip/edit assoc :result prod-input) zip/root zip/vector-zip))
 
-(defn x []
+(defn check-structure []
   (let [res (-> z start-up modify-all zip/vector-zip check-all)]
     (if res
       (do
@@ -224,3 +215,10 @@
       (do
         (println "All fine")
         (par/err->out "All fine")))))
+
+(defn view-structure []
+  (let [res (-> z start-up modify-all zip/vector-zip visit-all)]
+    (pp/pprint res)))
+
+(defn x []
+  (view-structure))

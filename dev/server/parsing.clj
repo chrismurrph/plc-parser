@@ -5,13 +5,19 @@
              [clojure.pprint :as pp]))
 
 (defn err->out [v]
-  (assert v)
+  (assert v (str "Can't send nothing to bad output"))
   (spit "bad_input.txt" v))
 
 (defn err->out-debug [v msg]
   (assert v msg)
   (spit "bad_input.txt" v))
 
+;;
+;; Choose one of these three functions for how to parse
+;; Unfortunately parse-many-first can hit the peformance problem and go forever
+;; Only solution to test that don't have more than one path is to use a smaller structure
+;; Hmm - however even that didn't do the trick
+;;
 (defn parse-many-first [ebnf input]
   (let [my-parser (insta/parser ebnf)
         xs (insta/parses my-parser input)
@@ -55,7 +61,7 @@
 
 ;; #(-> % :value (str/replace #"\t" "        ") my-parser)
 (def do-parse (fn [ebnf s]
-                (parse-one-only ebnf s)))
+                (parse-one-only-optimized ebnf s)))
 
 (defn info [ebnf s begin-str end-str begin end]
   (let [_ (assert begin-str)
@@ -66,6 +72,7 @@
         value (subs s begin real-end)
         rid-tabs-value (str/replace value #"\t" "        ")
         parsed-value (some-> ebnf (do-parse rid-tabs-value))
+        _ (assert (nil? (:msg parsed-value)) (:msg parsed-value))
         ;; there should also be a msg, so that's another way finding out
         err? (if (-> parsed-value :res :reason) true false)]
     {:name         (str/trim begin-str)
