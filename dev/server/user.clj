@@ -1,6 +1,7 @@
 (ns user
   (:require [clojure.pprint :as pp]
             [parsing :as par]
+            [utils :as u]
             [clojure.zip :as zip]))
 
 (defn r []
@@ -111,7 +112,7 @@
         ;_ (println "name: " bnf "for" name)
         ebnf (some-> bnf (str ".bnf") slurp)
         parent (parent-of loc-ref)
-        _ (println (type (:result parent)))
+        ;_ (println (type (:result parent)))
         s (:result parent)
         _ (assert (string? s) (str "Not string for " name))
         res (if (= cardinality :many)
@@ -129,16 +130,16 @@
   (let [{:keys [name bnf tag cardinality]} (zip/node loc-ref)
         end-str (str "END_" tag)
         _ (assert tag (str "No tag found for " name))
-        _ (println "name: " bnf "for" name "many-many? " many-many? "tag: " tag)
+        ;_ (println "name: " bnf "for" name "many-many? " many-many? "tag: " tag)
         ebnf (some-> bnf (str ".bnf") slurp)
         xs (:result (parent-of loc-ref))
-        ;_ (println "xs:" xs)
+        ;_ (println name " - xs:" xs)
         _ (assert (coll? xs))
         break-up-parse-fn (if many-many? par/groups-of par/first-of)
         mapping-fn (partial break-up-parse-fn ebnf tag end-str "break-into-many-parse")
-        res (map mapping-fn (if many-many?
-                              (map #(-> % :value mapping-fn) xs)
-                              (map #(-> % :value mapping-fn) xs)))]
+        res (if many-many?
+              (mapcat #(-> % :value mapping-fn) xs)
+              (map #(-> % :value mapping-fn) xs))]
     res))
 
 (defn check [res]
@@ -162,21 +163,29 @@
       {:node (update node :result shorten-result) :parent (parent-of loc)}
       nil)))
 
+(defn my-format [x]
+  ;(println "formatting a " (type x))
+  [(type x) (when (many-of? x) (count x)) (:name x) (keys x)])
+
 (defn check-loc [loc]
   (let [node (zip/node loc)]
     (if (map? node)
       (let [res (:result node)]
         (cond
-          (map? res) (keys res)
+          (map? res) (my-format res)
           (string? res) (apply str (vec (take 150 res)))
-          :default (map keys res)))
+          :default (map my-format res)
+          ))
       nil)))
 
 (defn visit-all [z]
   (loop [loc z results []]
     (if (zip/end? loc)
-      (remove nil? results)
-      (recur (zip/next loc) (conj results (check-loc loc))))))
+      results
+      (if-let [res (check-loc loc)]
+        (let [new-results (conj results res)]
+          (recur (zip/next loc) new-results))
+        (recur (zip/next loc) results)))))
 
 (def prod-input (slurp "prod_input.L5K"))
 

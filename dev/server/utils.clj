@@ -7,6 +7,14 @@
 
 (defn pp-str [x] (-> x pp/pprint with-out-str))
 
+(defn probe-on [x]
+  (println x)
+  x)
+
+(defn probe-off [x]
+  (println x)
+  x)
+
 ;
 ; s and value never change but from-index is recursed, so can use loop recur on just that
 ;
