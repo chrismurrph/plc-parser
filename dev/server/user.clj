@@ -31,7 +31,7 @@
                 [{:name :trend :cardinality :many :bnf "trend" :tag "TREND"}]
                 [{:name :add-on-instruction :cardinality :many :tag "ADD_ON_INSTRUCTION_DEFINITION"}
                  [{:name :parameters :cardinality :one :bnf "parameters" :tag "PARAMETERS"}
-                  {:name :local-tags :cardinality :one :bnf "tag" :tag "LOCAL_TAGS"}
+                  {:name :local-tags :cardinality :one :bnf "local-tags" :tag "LOCAL_TAGS"}
                   {:name :routine :cardinality :one :bnf "routine" :tag "ROUTINE"}]]])
 
 (def z (zip/vector-zip structure))
@@ -196,15 +196,19 @@
         (recur (zip/next loc) results)))))
 
 (defn check-all [z]
-  (loop [loc z results []]
-    (if (zip/end? loc)
-      results
-      (if-let [potential-problems (check-loc loc)]
-        (let [
-              ;_ (println "size potential problems is " (count potential-problems))
-              new-results (concat results potential-problems)]
-          (recur (zip/next loc) new-results))
-        (recur (zip/next loc) results)))))
+  (loop [loc z bad-result nil]
+    (if bad-result
+      bad-result
+      (if (zip/end? loc)
+        nil
+        (if-let [potential-problems (check-loc loc)]
+          (let [bad-problem (some #(when-not (:okay? %) %) potential-problems)
+                ;_ (println (str "Got " bad-problem " from " (count potential-problems)))
+                ]
+            (if bad-problem
+              (recur (zip/next loc) bad-problem)
+              (recur (zip/next loc) nil)))
+          (recur (zip/next loc) nil))))))
 
 (def prod-input (slurp "prod_input.L5K"))
 
@@ -213,4 +217,10 @@
 
 (defn x []
   (let [res (-> z start-up modify-all zip/vector-zip check-all)]
-    (when testing? (pp/pprint res))))
+    (if res
+      (do
+        (println (u/pp-str (:msg res)))
+        (par/err->out (:value res)))
+      (do
+        (println "All fine")
+        (par/err->out "All fine")))))

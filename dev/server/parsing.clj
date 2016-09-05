@@ -75,10 +75,14 @@
      :end          real-end
      :err?         err?}))
 
+(def debug? false)
+(def debug-on "LOCAL_TAGS")
 (defn groups-of
   ([ebnf begin-str end-str debug s]
    (let [_ (assert s)
          _ (assert begin-str)
+         _ (when (and debug? (= begin-str debug-on))
+             (println (str "Looking for <" begin-str "> in <" (apply str (take 100 s)) ">")))
          ;_ (assert (string? s) (str "groups-of not getting string for <" begin-str "> is <" s "> type " (type s) "called from" debug))
          begins (indexes-of s begin-str)
          ends (indexes-of s end-str)
@@ -114,8 +118,7 @@
                     input (:value m)]
                 [(str "Problem is at line " line " and col " column " b/c: " reason) input]
                 {:msg (str "Problem is at line " line " and col " column " b/c: " reason) :value input :okay? false})
-              {:msg "No problem" :okay? true})
-        _ (when (= name "LOCAL_TAGS") (println (str "Being called for " name " and res is " res)))]
+              {:msg "No problem" :okay? true})]
     res))
 
 (defn find-one-problem-from-many [name c]
