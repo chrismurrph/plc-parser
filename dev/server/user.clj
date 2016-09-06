@@ -148,17 +148,20 @@
                  (top-level-change? loc) (zip/edit loc assoc :result (break-into-parse loc))
                  :else loc))))))
 
-(defn my-format [x]
+(defn sparse-format [x]
   [(type x) (:name x) (keys x)])
 
-(defn view-loc [loc]
+(defn huge-format [x]
+  x)
+
+(defn view-loc [format-fn loc]
   (let [node (zip/node loc)]
     (if (map? node)
       (let [res (:result node)]
         (cond
-          (map? res) (my-format res)
-          (string? res) (apply str (vec (take 150 res)))
-          :default (map my-format res)
+          (map? res) (format-fn res)
+          (string? res) nil #_(apply str (vec (take 150 res)))
+          :default (map format-fn res)
           ))
       nil)))
 
@@ -177,15 +180,18 @@
           ))
       [])))
 
-(defn visit-all [z]
+(defn visit-all [z format-fn]
   (loop [loc z results []]
     (if (zip/end? loc)
       results
-      (if-let [res (view-loc loc)]
+      (if-let [res (view-loc format-fn loc)]
         (let [new-results (conj results res)]
           (recur (zip/next loc) new-results))
         (recur (zip/next loc) results)))))
 
+;;
+;; Returns the first bad result it finds, or nil if there are none
+;;
 (defn check-all [z]
   (loop [loc z bad-result nil]
     (if bad-result
@@ -196,9 +202,7 @@
           (let [bad-problem (some #(when-not (:okay? %) %) potential-problems)
                 ;_ (println (str "Got " bad-problem " from " (count potential-problems)))
                 ]
-            (if bad-problem
-              (recur (zip/next loc) bad-problem)
-              (recur (zip/next loc) nil)))
+            (recur (zip/next loc) bad-problem))
           (recur (zip/next loc) nil))))))
 
 (def prod-input (slurp "prod_input.L5K"))
@@ -206,6 +210,10 @@
 (defn start-up [z]
   (-> z zip/down (zip/edit assoc :result prod-input) zip/root zip/vector-zip))
 
+;;
+;; See view-structure for description. The problem mentioned there doesn't stop us
+;; being able to check every thing that needs to be parsed.
+;;
 (defn check-structure []
   (let [res (-> z start-up modify-all zip/vector-zip check-all)]
     (if res
@@ -216,9 +224,21 @@
         (println "All fine")
         (par/err->out "All fine")))))
 
+;;
+;; Visits each node. The thing we actually return from sparse-format is a vector that gives a sparse
+;; description of the node visited. Look at the structure that is being visited. Notice that there
+;; will be many programs, yet program is just one node. In such a case in the output produced there
+;; will be a list (of vectors) at this position in the outer list. This might be okay for programs,
+;; but stuffs up at the next level down. For instance with tag there as many tags as there are programs,
+;; and probably they can be matched because in the same order. But with routine there are many per program,
+;; so how do you know when the next routine is for the next program??
+;;
 (defn view-structure []
-  (let [res (-> z start-up modify-all zip/vector-zip visit-all)]
-    (pp/pprint res)))
+  (let [sparse-visit #(visit-all % sparse-format)
+        huge-visit #(visit-all % huge-format)
+        visited (-> z start-up modify-all zip/vector-zip sparse-visit)
+        res visited]
+    (spit "output.clj" (u/pp-str res))))
 
 (defn x []
   (view-structure))

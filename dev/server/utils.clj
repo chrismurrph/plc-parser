@@ -36,6 +36,19 @@
           res
           (whole-word-index-of s value end-res))))))
 
+(defn indexes-of [s value]
+  (loop [acc [] idx 0]
+    (let [res (whole-word-index-of s value idx)]
+      (if (nil? res)
+        acc
+        (recur (conj acc res) (inc res))))))
+
+#_(defn test-whole-word []
+    (let [s prod-input
+          want "TAG"
+          res (u/whole-word-index-of s want 0)]
+      res))
+
 (defn rm-punctuation [in-str]
   (apply str (remove #{\. \? \!} in-str)))
 

@@ -18,4 +18,4 @@ any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
 any-assign-comma = any-assign ',' newline whitespace
 any-assigns = any-assign-comma * any-assign
 enclosure = '(' any-assigns ')'
-<config> = <"CONFIG"> whitespace word enclosure whitespace <"END_CONFIG">
+config = <"CONFIG"> whitespace word enclosure whitespace <"END_CONFIG">

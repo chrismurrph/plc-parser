@@ -13,3 +13,4 @@ pom.xml.asc
 *.iml
 bad_input.txt
 output.txt
+output.clj

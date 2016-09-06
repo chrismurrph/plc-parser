@@ -1,5 +1,5 @@
 <S> = routine
-rung-comment = "RC:" whitespace anything-string (newline whitespace anything-string) * ending-op
+rung-comment = <"RC:"> whitespace anything-string (newline whitespace anything-string) * ending-op
 branch-level = ((instruction | branch) ' ') +
 branch = '[' (branch-level ',') + branch-level ']'
 instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES"
@@ -15,7 +15,7 @@ instruction-arg = simple-word rest-instruction-arg
 instruction-name-part = (instruction-arg | integer | float | '?' | "S:FS")
 instruction-args = instruction-name-part ((',' | '=' | '<=' | '+' | '>' | '*' | '<' | '<>') instruction-name-part) *
 instruction = (instruction-name | add-on-instruction-name) '(' instruction-args ? ')'
-rung = "N: " (instruction | branch) + ending-op
+rung = <"N: "> (instruction | branch) + ending-op
 routine = "ROUTINE" ' ' word ' ' <newline> ? enclosure ? (whitespace (rung-comment | rung) <newline>) + whitespace "END_ROUTINE"
 data-fills = (whitespace data-fill <newline>) +
 data-fill = normal-fill | bit-fill | custom-fill

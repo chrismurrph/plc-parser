@@ -46,19 +46,6 @@
         _ (assert res (str "No result"))]
     {:res res :msg nil}))
 
-#_(defn test-whole-word []
-  (let [s prod-input
-        want "TAG"
-        res (u/whole-word-index-of s want 0)]
-    res))
-
-(defn indexes-of [s value]
-  (loop [acc [] idx 0]
-    (let [res (u/whole-word-index-of s value idx)]
-      (if (nil? res)
-        acc
-        (recur (conj acc res) (inc res))))))
-
 ;; #(-> % :value (str/replace #"\t" "        ") my-parser)
 (def do-parse (fn [ebnf s]
                 (parse-one-only-optimized ebnf s)))
@@ -91,8 +78,8 @@
          _ (when (and debug? (= begin-str debug-on))
              (println (str "Looking for <" begin-str "> in <" (apply str (take 100 s)) ">")))
          ;_ (assert (string? s) (str "groups-of not getting string for <" begin-str "> is <" s "> type " (type s) "called from" debug))
-         begins (indexes-of s begin-str)
-         ends (indexes-of s end-str)
+         begins (u/indexes-of s begin-str)
+         ends (u/indexes-of s end-str)
          num-begins (count begins)
          num-ends (count ends)
          _ (assert (= num-begins num-ends) (str "Number begins and ends: " num-begins "," num-ends " - not same for: " begin-str))
@@ -128,6 +115,9 @@
               {:msg "No problem" :okay? true})]
     res))
 
+;;
+;; Only used by laborious
+;;
 (defn find-one-problem-from-many [name c]
   (let [potential-problems (map #(find-problem name %) c)
         bad-problem (some #(when-not (:okay? %) %) potential-problems)
