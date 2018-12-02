@@ -1,2 +1,2 @@
 <S> = trend
-<trend> = #"TREND[\s\S]*?END_TREND"
+trend = #"TREND[\s\S]*?END_TREND"

@@ -1,9 +1,9 @@
 <S> = task
-ending-op = ';'
-assign-op = ':='
+<ending-op> = <';'>
+<assign-op> = <':='?>
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-newline = <'\r' ? '\n'>
+<newline> = <'\r' ? '\n'>
 integer = '-' ? #'[0-9]+'
 base-number = integer '#' word
 float = #'[-+]?[0-9]*\.[0-9]+'
@@ -12,11 +12,12 @@ quote = '\"'
 anything-word = #'[!?%<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 anything-string = quote one-or-more-anythings quote
-rhs-of-assign = integer | float | version | base-number | "No" | "CONTINUOUS" | "PERIODIC"
 array-dimension = <'['> integer <']'>
-variable = #'[0-9a-zA-Z_]+' array-dimension ?
-any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
-any-assign-comma = any-assign ',' newline whitespace
-any-assigns = any-assign-comma * any-assign
-enclosure = '(' any-assigns ')'
-<task> = <"TASK"> whitespace word whitespace enclosure newline whitespace (variable ending-op newline whitespace) + <"END_TASK">
+var = #'[0-9a-zA-Z_]+' array-dimension ?
+type = <"Type"> whitespace assign-op whitespace ("CONTINUOUS" | "PERIODIC")
+numeric = ("Rate" | "Priority" | "Watchdog") whitespace assign-op whitespace integer
+dont-disable = <"DisableUpdateOutputs" whitespace assign-op whitespace "No">
+dont-inhibit = <"InhibitTask" whitespace assign-op whitespace "No">
+assign = type | numeric | dont-disable | dont-inhibit
+enc = <'('> (assign <','> newline whitespace) * assign <')'>
+task = <"TASK"> whitespace word whitespace enc newline whitespace (var ending-op newline whitespace) + <"END_TASK">

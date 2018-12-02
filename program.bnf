@@ -1,0 +1,4 @@
+<S> = program
+<whitespace> = <#'\s+'>
+word = #'[.\\0-9a-zA-Z_-]+'
+<program> = <"PROGRAM"> <whitespace> word <whitespace> <#"[\s\S]*?END_PROGRAM">

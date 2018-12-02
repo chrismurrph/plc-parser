@@ -3,24 +3,137 @@
             [clojure.pprint :as pp]))
 
 (defn r []
-  (require 'utils :reload))
+  (require 'user :reload))
 
-(defn pp-str [x] (-> x pp/pprint with-out-str))
+(defn get-now [] (.getTime (java.util.Date.)))
 
-(defn probe-on [x]
-  (println x)
-  x)
+(def startup-time (get-now))
 
-(defn probe-off [x]
-  (println x)
-  x)
+;(println (str "startup-time is " startup-time))
+
+(defn elapsed []
+  (- (get-now) startup-time))
+
+(defn strip-edges [s]
+  (apply str (take (- (count s) 2) (drop 1 s))))
+
+(defn left-bank [left coll]
+  (vec (concat left (drop (count left) coll))))
+
+(defn right-bank [right coll]
+  (let [diff (- (count coll) (count right))]
+    (vec (concat (take diff coll) right))))
+
+;; Seems like it was gonna work, but have no effect
+;; (alter-var-root (var pp/*print-right-margin*) (constantly 200))
+;; (alter-var-root (var pp/*print-miser-width*) (constantly 200))
+;; (alter-var-root (var pp/*print-length*) (constantly 200))
+;; pr-str might be proper way
+;; (defn pp-str [x] (-> x clojure.pprint/pprint with-out-str))
+
+(defn pp-str
+  ([x n]
+   (binding [pp/*print-right-margin* n]
+     (-> x clojure.pprint/pprint with-out-str)))
+  ([x]
+   (pp-str x 1000)))
+
+;(def pp-str (fn [s]
+;              (pr-str s {:right-margin 200
+;                         :not-exists   20
+;                         :miser-width  200})))
+
+(defn after [begin-marker s]
+  (apply str (drop (count begin-marker) (drop-while #(not= % (first begin-marker)) s))))
+
+(defn before [end-marker s]
+  (apply str (take-while #(not= % (first end-marker)) s)))
+
+(defn between [begin-marker end-marker s]
+  (let [after-fn #(after begin-marker %)
+        before-fn #(before end-marker %)
+        blank->nil-fn #(if (= % "") nil %)]
+    (-> s after-fn before-fn blank->nil-fn)))
+
+(defn probe-on
+  ([x]
+   (println x)
+   x)
+  ([x msg]
+    (println msg x)
+    x))
+
+(defn probe-stack
+  ([x]
+   (do
+     (println x)
+     (assert false))
+   x)
+  ([x msg]
+   (do
+     (println msg x)
+     (assert false msg))
+   x))
+
+(defn probe-off
+  ([x]
+   x)
+  ([x msg]
+   x))
+
+;;
+;; Same as (not (nil? x))
+;;
+(defn is? [x]
+  (or (boolean? x) x))
+
+;; NumberFormatException
+(defn string->int [s]
+  (assert s)
+  (assert (or (string? s) (char? s)) (str "Wrong type: <" (type s) ">, <" s ">"))
+  (try
+    (Long/parseLong (str s))
+    (catch NumberFormatException _
+      (assert false (str "Cannot parse as an int: <" s ">"))
+      nil)))
+
+;(defn int-between [s1 s2 s]
+;  (string->int (subs s (count s1) (count s2))))
+
+(defn has-key? [m kw]
+  (boolean (and (map? m) (some #{kw} (keys m)))))
+
+(defn not-blank? [x]
+  (or (boolean? x) (and x (not= x ""))))
+
+;;
+;; Returns the index positions of those that satisfy the pred(icate)
+;;
+(defn positions
+  [pred coll]
+  (keep-indexed (fn [idx x]
+                  (when (pred x)
+                    idx))
+                coll))
+
+(defn index-of [coll desired]
+  (first (keep-indexed (fn [idx val] (when (= val desired) idx)) coll)))
+
+(defn first-no-more [seq]
+  (assert (= nil (second seq)) (str "Only supposed to be one. However:\nFIRST:\n" (first seq) "\nSECOND:\n" (second seq)))
+  (first seq))
+
+(def third #(nth % 2))
 
 ;
 ; s and value never change but from-index is recursed, so can use loop recur on just that
 ;
-(defn whole-word-index-of [^CharSequence s value ^long from-index]
+(defn- whole-word-index-of [^CharSequence s value ^long from-index after?]
   (let [whitespace? (fn [^Character c]
                       (or (= c \newline) (= c \return) (= c \space) (= c \tab)))
+        _ (assert value)
+        _ (assert s (str "Can't look for <" value "> in nil"))
+        _ (assert from-index)
         res (str/index-of s value from-index)
         ]
     (if (nil? res)
@@ -33,15 +146,28 @@
             whole-word? (and whitespace-before? whitespace-after?)
             ]
         (if whole-word?
-          res
-          (whole-word-index-of s value end-res))))))
+          (if after? (+ res (count value)) res)
+          (whole-word-index-of s value end-res after?))))))
 
-(defn indexes-of [s value]
+(defn indexes-of-whole-word [s value after?]
   (loop [acc [] idx 0]
-    (let [res (whole-word-index-of s value idx)]
+    (let [res (whole-word-index-of s value idx after?)]
       (if (nil? res)
         acc
         (recur (conj acc res) (inc res))))))
+
+(defn indexes-of [s value]
+  (loop [acc [] idx 0]
+    (let [res (str/index-of s value idx)]
+      (if (nil? res)
+        acc
+        (recur (conj acc res) (inc res))))))
+
+(defn insert-at [s x n]
+  (apply str (concat (take n s) x (drop n s))))
+
+(defn indexes-of-many-whole-words [s values after?]
+  (map #(indexes-of-whole-word s %  after?) values))
 
 #_(defn test-whole-word []
     (let [s prod-input
@@ -148,11 +274,6 @@
 (defn perfect-square? [n]
   (-> n sqrt whole-number?))
 
-(defn output-the-input []
-  (let [input (line-seq (java.io.BufferedReader. *in*))]
-    (doseq [v input]
-      (println v))))
-
 (defn gen-primes [n]
   (letfn [(sieve [s]
             (cons (first s)
@@ -162,12 +283,12 @@
 
 (defn comma-str->ints
   [string]
-  (map #(Integer/parseInt %)
+  (map #(Long/parseLong %)
        (clojure.string/split string #",")))
 
 (defn space-str->ints
   [string]
-  (map #(Integer/parseInt %)
+  (map #(Long/parseLong %)
        (clojure.string/split string #" ")))
 
 (defn many-line-reader [lines item-fn no-overall-header]
@@ -194,6 +315,57 @@
         res (:results output)]
     res))
 
+
+
+(defn string->int-not-strict [s]
+  (assert (string? s) (str "Wrong type (not string), where value is: " s ", type is " (type s)))
+  (try
+    (Long/parseLong s)
+    (catch NumberFormatException _
+      nil)))
+
+;;
+;; Naive function that does not respect the sign bit
+;; Where ever this is used but not from convert is a danger sign.
+;;
+(defn left-pad [xs pad-ele max-sz]
+  (let [
+        diff-count (- max-sz (count xs))
+        ;_ (assert (or (zero? diff-count) (pos? diff-count)) (str "Max size is " max-sz ", yet already have " (count xs)))
+        ]
+    (if (> (count xs) max-sz)
+      xs
+      (concat (take diff-count (repeat pad-ele)) xs))))
+
+(defn left-pad-integer [int pad-ele max-sz]
+  (let [_ (assert (number? int))
+        as-str (str int)
+        diff-count (- max-sz (count as-str))
+        _ (assert (or (zero? diff-count) (pos? diff-count)) (str "Max size is " max-sz ", yet already have " (count as-str)))
+        padded (apply str (concat (repeat diff-count pad-ele) as-str))
+        ]
+    padded))
+
+(defn sleep [n]
+  (Thread/sleep n))
+
+(defmacro assrt
+  "Useful to use (rather than official version that this is o/wise a copy of) when don't want intermingling of
+  the stack trace produced here with trace output that want to come before"
+  {:added "1.0"}
+  ([x]
+   (when *assert*
+     `(when-not ~x
+        (sleep 30)
+        (throw (new AssertionError (str "Assert failed: " (pr-str '~x)))))))
+  ([x message]
+   (when *assert*
+     `(when-not ~x
+        (sleep 30)
+        (throw (new AssertionError (str "Assert failed: " ~message "\n" (pr-str '~x))))))))
+
+(defn ends-with? [s ending]
+  (= (dec (count s)) (str/last-index-of s ending)))
 
 ;(defn fibonacci-seq [size]
 ;  (loop [acc [1N 1N]
@@ -254,8 +426,22 @@
     :else (concat (mapv #(cons (first population) %) (combinations (rest population) (dec sz)))
                   (combinations (rest population) sz))))
 
-(defn digits->number [digits]
-  (reduce (fn [a b] (+ (* a 10) b)) 0 digits))
+(defn transpose
+  "Transposes the given nested sequence into nested vectors, as
+  in matrix transposition.  E.g., (transpose [[1 2 3] [4 5 6]])
+  would return [[1 4] [2 5] [3 6]]."
+  [s]
+  (vec (apply mapv vector s)))
+
+(defn shift
+  [row n]
+  (let [n (- (count row) n)
+        [first-part second-part] (split-at n row)]
+    (vec (concat second-part first-part))))
+
+(comment
+  (defn digits->number [digits]
+    (reduce (fn [a b] ('+ ('* a 10) b)) 0 digits)))
 
 (comment
   (defn gcd [a b]

@@ -2,20 +2,20 @@
 assign-op = ':='
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-newline = <'\r' ? '\n'>
-integer = '-' ? #'[0-9]+'
-base-number = integer '#' word
+<newline> = <'\r' ? '\n'>
+int = '-' ? #'[0-9]+'
+base-number = int '#' word
 float = #'[-+]?[0-9]*\.[0-9]+'
 version = "V" float
 quote = '\"'
 anything-word = #'[!?%<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 anything-string = quote one-or-more-anythings quote
-rhs-of-assign = integer | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
-array-dimension = <'['> integer <']'>
-variable = #'[0-9a-zA-Z_]+' array-dimension ?
-any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
-any-assign-comma = any-assign ',' newline whitespace
-any-assigns = any-assign-comma * any-assign
-enclosure = '(' any-assigns ')'
-config = <"CONFIG"> whitespace word enclosure whitespace <"END_CONFIG">
+<rhs-of-assign> = int | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
+array-dimension = <'['> int <']'>
+var = #'[0-9a-zA-Z_]+' array-dimension ?
+assign = var <whitespace> <assign-op> <whitespace> rhs-of-assign
+<any-assign-comma> = assign <','> newline whitespace
+<any-assigns> = any-assign-comma * assign
+enc = <'('> any-assigns <')'>
+config = <"CONFIG"> whitespace word enc whitespace <"END_CONFIG">

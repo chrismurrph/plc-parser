@@ -1,12 +1,12 @@
 <S> = parameters
-quote = '\"'
+quote = <'\"'>
+int = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
-integer = '-' ? #'[0-9]+'
-array-dimension = <'['> integer <']'>
+array-dimension = <'['> int <']'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
 newline = <'\r' ? '\n'>
-assign-op = ':='
-ending-op = ';'
+assign-op = <':='>
+ending-op = <';'>
 anything-word = #'[+/\'<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
 anything-string = quote one-or-more-anythings quote
@@ -16,15 +16,17 @@ tag-description-assign = "Description" whitespace assign-op whitespace anything-
 usage-assign = "Usage" whitespace assign-op whitespace ("Input" | "Output")
 required-assign = "Required" whitespace assign-op whitespace ("Yes" | "No")
 visible-assign = "Visible" whitespace assign-op whitespace ("Yes" | "No")
-engineering-float-data-number = float ('e+' | 'e-') integer (newline whitespace) ?
-default-data-assign = "DefaultData" whitespace assign-op whitespace (engineering-float-data-number | integer)
+eng-neg = <'e-'>
+eng-pos = <'e+'>
+eng = float (eng-pos | eng-neg) int (newline whitespace) ?
+default-data-assign = "DefaultData" whitespace <assign-op> whitespace (eng | int)
 external-access-assign = "ExternalAccess" whitespace assign-op whitespace "None"
 parameter-enclosure-assign = tag-description-assign | usage-assign | tag-radix-assign | required-assign | visible-assign
 | default-data-assign | external-access-assign
-enclosure = '(' (parameter-enclosure-assign ',' newline whitespace) * parameter-enclosure-assign ');'
+enclosure = <'('> (<parameter-enclosure-assign> <','> <newline> whitespace) * parameter-enclosure-assign <');'>
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE"
-definition = word whitespace ":" whitespace raw-type whitespace enclosure <newline> whitespace
+raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE" | "TIMER"
+definition = word whitespace <":"> whitespace raw-type whitespace enclosure <newline> whitespace
 definitions = definition +
 <parameters> = <"LOCAL_TAGS"> whitespace definitions <"END_LOCAL_TAGS">

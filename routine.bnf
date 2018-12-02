@@ -1,28 +1,28 @@
 <S> = routine
-rung-comment = <"RC:"> whitespace anything-string (newline whitespace anything-string) * ending-op
-branch-level = ((instruction | branch) ' ') +
-branch = '[' (branch-level ',') + branch-level ']'
-instruction-name = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "XIC" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES"
+<rung-comment> = <"RC:" whitespace anything-string (newline whitespace anything-string) * ending-op>
+br-lev = ((inst | br) <' '>) +
+br = <'['> (br-lev <','>) + br-lev <']'>
+<instruction-name> = "EQU" | "XIC" | "CMP" | "XIO" | "MOV" | "OTL" | "OTE" | "FLL" | "NEQ" | "XIO" | "RES"
 | "LES" | "TON" | "CTU" | "NOP" | "SUB" | "MUL" | "ADD" | "DIV" | "BTD" | "COP" | "GSV" | "ONS" | "OTE" | "MOD"
 | "GEQ" | "CLR" | "OTU" | "JSR" | "OSR" | "GRT" | "AFI" | "LEQ" | "CPT" | "FOR" | "MSG" | "LBL" | "JMP" | "MID"
 | "SWPB" | "DELETE" | "OR" | "AND" | "SBR" | "RET" | "CONCAT"
 add-on-instruction-name = "MBUS_REAL" | "LinearScalingIn"
 ch-data = "Ch" integer ("Data" | "Underrange" | "Overrange")
-rest-instruction-arg =
-  ( ('.' simple-word) ? ('[' instruction-name-part ']') ? ('.' simple-word ?) * ('[' (simple-word | integer) ']') ?)
-| (':' integer ':' #'[A-Z]' '.' (ch-data | "Data"))
-instruction-arg = simple-word rest-instruction-arg
-instruction-name-part = (instruction-arg | integer | float | '?' | "S:FS")
-instruction-args = instruction-name-part ((',' | '=' | '<=' | '+' | '>' | '*' | '<' | '<>') instruction-name-part) *
-instruction = (instruction-name | add-on-instruction-name) '(' instruction-args ? ')'
-rung = <"N: "> (instruction | branch) + ending-op
-routine = "ROUTINE" ' ' word ' ' <newline> ? enclosure ? (whitespace (rung-comment | rung) <newline>) + whitespace "END_ROUTINE"
+w = #'[:0-9a-zA-Z_-]+' | "?"
+brk = <'['> n <']'>
+n = (w | n) ((<'.'> n) | (brk '.' ?)) ?
+(**)
+<operator> = ',' | '=' | '<=' | '+' | '>' | '*' | '<' | '<>'
+inst-args = #"\([\s\S]*?\)"
+inst = (instruction-name | add-on-instruction-name) inst-args
+rung = <"N: "> (inst | br) + <ending-op>
+routine = <"ROUTINE"> <' '> word <' '> <newline> ? enclosure ? (whitespace (rung-comment | rung) <newline>) + <whitespace "END_ROUTINE">
 data-fills = (whitespace data-fill <newline>) +
 data-fill = normal-fill | bit-fill | custom-fill
 normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
 bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer whitespace enclosure ? ending-op
 custom-fill = custom-type whitespace variable ending-op
-enclosure = '(' any-assigns ')'
+<enclosure> = <'('> <any-assigns> <')'>
 array-comment = "COMMENT[" integer ']'
 dot-comment = "COMMENT." integer
 tag-comment-assign = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
@@ -55,7 +55,7 @@ end-comment = <')'>
 variable = #'[0-9a-zA-Z_]+' array-dimension ?
 bit-variable = variable
 array-dimension = <'['> integer <']'>
-simple-word = #'[0-9a-zA-Z_-]+' ('.' integer) ?
+<simple-word> = #'[0-9a-zA-Z_-]+' ('.' integer) ?
 word = #'[.\\0-9a-zA-Z_-]+'
 anything-word = #'[#;’‘\'\]\[%/+*<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
@@ -64,7 +64,7 @@ one-or-more-anythings = whitespace ? (anything-word whitespace) * anything-word 
 wordy-string = quote one-or-more-words quote
 anything-string = quote one-or-more-anythings quote
 quote = '\"'
-integer = '-' ? #'[0-9]+'
+<integer> = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
 version = "V" float
 punctuation = #'[.,\/#!$%\^&\*;:{}=\-_`~()\']+'

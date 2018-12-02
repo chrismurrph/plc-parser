@@ -1,0 +1,4 @@
+<S> = add-on
+<whitespace> = <#'\s+'>
+word = #'[.\\0-9a-zA-Z_-]+'
+<add-on> = <"ADD_ON_INSTRUCTION_DEFINITION"> <whitespace> word <whitespace> <#"[\s\S]*?END_ADD_ON_INSTRUCTION_DEFINITION">

@@ -5,59 +5,63 @@ anything-string = quote one-or-more-anythings quote
 quote = '\"'
 <ending-op> = <';'>
 <assign-op> = <':='>
-array-dimension = <'['> integer <']'>
-array-comment = "COMMENT[" integer ']'
-dot-comment = "COMMENT" ('.' variable) * ('.' integer) ?
-comment-assign = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
-radix-assign = <"RADIX"> whitespace assign-op whitespace radix-type
-description-assign = <"Description" whitespace assign-op whitespace anything-string>
-message-type-assign = "MessageType := CIP Generic"
-requested-length-assign = "RequestedLength" whitespace assign-op whitespace integer
-connected-flag-assign = "ConnectedFlag" whitespace assign-op whitespace integer
+dim = <'['> int <']'>
+array-comment = "COMMENT[" int ']'
+dot-comment = "COMMENT" ('.' var) * ('.' int) ?
+comment = (array-comment | dot-comment) whitespace assign-op whitespace anything-string
+radix = <"RADIX"> whitespace assign-op whitespace radix-t
+description = <"Description" whitespace assign-op whitespace anything-string>
+message-type = "MessageType := CIP Generic"
+requested-length-assign = "RequestedLength" whitespace assign-op whitespace int
+connected-flag-assign = "ConnectedFlag" whitespace assign-op whitespace int
 connection-path-assign = "ConnectionPath" whitespace assign-op whitespace anything-string
-comm-type-code-assign = "CommTypeCode" whitespace assign-op whitespace integer
+comm-type-code-assign = "CommTypeCode" whitespace assign-op whitespace int
 service-code-assign = "ServiceCode" whitespace assign-op whitespace base-sixteen-number
 object-type-assign = "ObjectType" whitespace assign-op whitespace base-sixteen-number
-target-object-assign = "TargetObject" whitespace assign-op whitespace integer
+target-object-assign = "TargetObject" whitespace assign-op whitespace int
 attribute-number-assign = "AttributeNumber" whitespace assign-op whitespace base-sixteen-number
-local-index-assign = "LocalIndex" whitespace assign-op whitespace integer
-local-element-assign = "LocalElement" whitespace assign-op whitespace quote variable quote
-destination-assign = "DestinationTag" whitespace assign-op whitespace quote variable quote
+local-index-assign = "LocalIndex" whitespace assign-op whitespace int
+local-element-assign = "LocalElement" whitespace assign-op whitespace quote var quote
+destination-assign = "DestinationTag" whitespace assign-op whitespace quote var quote
 large-packet-usage-assign = "LargePacketUsage := No"
-enclosure-assign = radix-assign | description-assign | comment-assign | message-type-assign
+assign = radix | description | comment | message-type
 | requested-length-assign | connected-flag-assign | connection-path-assign | comm-type-code-assign 
 | service-code-assign | object-type-assign | target-object-assign | attribute-number-assign | local-index-assign 
 | local-element-assign | large-packet-usage-assign | destination-assign
-enclosure = <'('> <(enclosure-assign ',' newline whitespace)> * enclosure-assign <')'>
+enc = <'('> <(assign ',' newline whitespace)> * assign <')'>
 <newline> = <'\r' ? '\n'>
-raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE"
-array-dimmed-raw-type = raw-type array-dimension ?
-native-type = raw-type | "BIT"
-custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always" 
+raw-t = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING" | "COUNTER" | "MESSAGE" | "TIMER"
+array-dimmed-raw-t = raw-t dim ?
+native-type = raw-t | "BIT"
+custom-t = "SockAddr" | "STR_OUT" | "STR_4096" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "Always" 
 | "READ_DATA_REQ" | "HMI_R_Gas" | "HMI_R_PLC" | "HMI_W" | "Local_Chassis" | "OpenConnParams" | "READ_RESP_STR" 
-| "WRT_DATA" | "MBConnection" | "REQUEST_PARAMETERS" | "String_1" | "LinearScalingIn" | "PLC_TIME" | "TIMER" 
+| "WRT_DATA" | "MBConnection" | "REQUEST_PARAMETERS" | "String_1" | "LinearScalingIn" | "PLC_TIME"
 | "R1_S1_AI_Raw" | "SCADA_R_Gas" | "Gases" | "TIME_OF_PLC" | "GasesOnly" | "SCADA_R_Sys" | "Tube_Seq_Item"
 | "STR_462"
 add-on-instruction-type = "MBUS_REAL"
-radix-type = "Float" | "Decimal"
-normal-type = (raw-type | custom-type | add-on-instruction-type)
-array-dimmed-type = normal-type array-dimension
+radix-t = "Float" | "Decimal"
+type = (raw-t | custom-t | add-on-instruction-type)
+array-t = type dim
 <whitespace> = <#'\s+'>
-variable = #'[0-9a-zA-Z_]+' array-dimension ?
-dot-variable = variable ('.' dot-variable) ? ('.' integer) ?
-tag-definition = variable whitespace <':'> whitespace (normal-type | array-dimmed-type) (whitespace enclosure) ? (whitespace assign-op whitespace data-number)? ending-op
-output-map-definition = variable whitespace "OF" whitespace dot-variable whitespace enclosure ending-op
-definitions = ((tag-definition | output-map-definition) <newline> <whitespace>) +
-data-rhs-of-assign = <'['> data-number (newline whitespace) ? (<','> (data-number | single-quoted-data-number)) * <']'>
-integer = '-' ? #'[0-9]+'
+var = #'[0-9a-zA-Z_]+' dim ?
+dot-var = var (<'.'> dot-var) ? (<'.'> int) ?
+def = var whitespace <':'> whitespace (type | array-t) (whitespace enc) ? (whitespace assign-op whitespace rhs)? ending-op
+alias-def = var whitespace <"OF"> whitespace dot-var whitespace enc ending-op
+definitions = ((def | alias-def) <newline> <whitespace>) +
+<number> = int-number | eng | base-two
+open-br = <'['>
+close-br = <']'>
+br = <open-br> rhs (newline whitespace) ? (<','> rhs) * <close-br>
+str-br = <open-br> rhs (newline whitespace) ? (<','> single-quoted) + <close-br>
+<rhs> = number | br | str-br
+int = '-' ? #'[0-9]+'
 float = #'[-+]?[0-9]*\.[0-9]+'
 base-sixteen-number = "16#" #'[0-9a-f]+'
-<gobble-anything> = <#'[/#$0-9a-zA-Z|~^&! \"*;`\[\]%+@{}?<>(),=\:.\\_-]+' | "\'$" | "\'I" | "\'<" | "\'^">
-data-number = integer-data-number | engineering-float-data-number | data-rhs-of-assign | base-two-data-number
-single-quoted-data-number = <"\'"> gobble-anything * <"\'"> <(newline whitespace)> ?
-base-two-data-number = <"2#"> integer (newline whitespace) ?
+<gobble-quote> = #'[/#$0-9a-zA-Z|~^&! \"*;`\[\]%+@{}?<>(),=\:.\\_-]+' | "\'$" | "\'I" | "\'<" | "\'^"
+single-quoted = <"\'"> gobble-quote * <"\'"> <(newline whitespace)> ?
+base-two = <"2#"> int (newline whitespace) ?
 eng-neg = <'e-'>
 eng-pos = <'e+'>
-engineering-float-data-number = float (eng-pos | eng-neg) integer (newline whitespace) ?
-<integer-data-number> = integer <(newline whitespace)> ?
+eng = float (eng-pos | eng-neg) int (newline whitespace) ?
+<int-number> = int <(newline whitespace)> ?
 tag = <"TAG"> <newline whitespace> definitions <"END_TAG">

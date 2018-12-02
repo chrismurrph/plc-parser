@@ -1,33 +1,32 @@
 <S> = data-type
-<data-type> = <"DATATYPE"> whitespace word whitespace enclosure <newline> data-fills whitespace <"END_DATATYPE">
-data-fills = (whitespace data-fill <newline>) +
-data-fill = normal-fill | bit-fill | custom-fill
-normal-fill = raw-type whitespace variable whitespace ? enclosure ? ending-op
-bit-fill = "BIT" whitespace bit-variable whitespace variable whitespace ':' whitespace integer (whitespace enclosure) ? ending-op
-custom-fill = custom-type whitespace variable (whitespace enclosure) ? ending-op
+data-type = <"DATATYPE"> whitespace word whitespace enc <newline> data-fills whitespace <"END_DATATYPE">
+<data-fills> = (whitespace (normal-fill | bit-fill | custom-fill) <newline>) +
+normal-fill = raw-type whitespace var whitespace ? enc ? ending-op
+bit-fill = <"BIT"> whitespace var whitespace var whitespace <':'> whitespace integer (whitespace enc) ? ending-op
+custom-fill = custom-type whitespace var (whitespace enc) ? ending-op
 array-dimension = <'['> integer <']'>
 integer = '-' ? #'[0-9]+'
 base-number = integer '#' word
 float = #'[-+]?[0-9]*\.[0-9]+'
 version = "V" float
-variable = #'[0-9a-zA-Z_]+' array-dimension ?
+var = #'[0-9a-zA-Z_]+' array-dimension ?
 quote = '\"'
 <whitespace> = <#'\s+'>
 word = #'[.\\0-9a-zA-Z_-]+'
-anything-word = #'[!?%<>(),$=\:.\\0-9a-zA-Z_-]+'
 xml-word = #'[/<>.\\0-9a-zA-Z-]+'
-one-or-more-words = (word whitespace) * word
+<ending-op> = <';'>
+<assign-op> = <':='>
+radix-t = "ASCII"
+anything-word = #'[!?%<>(),$=\:.\\0-9a-zA-Z_-]+'
 one-or-more-anythings = (anything-word whitespace) * anything-word ? whitespace ?
-wordy-string = quote one-or-more-words quote
 anything-string = quote one-or-more-anythings quote
-rhs-of-assign = integer | float | anything-string | version | base-number | "No" | "NoFamily" | "StringFamily" | "ASCII"
-assign-op = ':='
-ending-op = ';'
-any-assign = variable <whitespace> assign-op <whitespace> rhs-of-assign
-any-assign-comma = any-assign ',' newline whitespace
-any-assigns = any-assign-comma * any-assign
-enclosure = '(' any-assigns ')'
+
+family-type = <"FamilyType"> <whitespace> assign-op <whitespace> ("NoFamily" | "StringFamily")
+description = <"Description" whitespace assign-op whitespace anything-string>
+hidden = <"Hidden"> whitespace assign-op whitespace integer
+radix = <"Radix"> whitespace assign-op whitespace radix-t
+assign = description | family-type | hidden | radix
+enc = <'('> <(assign ',' newline whitespace)> * assign <')'>
 raw-type = "DINT" | "REAL" | "SINT" | "BOOL" | "INT" | "STRING"
 custom-type = "SockAddr" | "STR_OUT" | "STR_4096" | "STR_462" | "Gas_Alm" | "Gas_Stat" | "MBTransaction" | "STR_1" | "OB32" | "IB32" | "IF16" | "DO32" | "DI32"
-bit-variable = variable
 newline = <'\r' ? '\n'>

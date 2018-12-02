@@ -14,3 +14,12 @@ pom.xml.asc
 bad_input.txt
 output.txt
 output.clj
+comment.txt
+first_tag
+plc-parser.tws
+prod_input.L5K
+version_assign.txt
+version_assign_2.txt
+*.edn
+*.log
+*.txt
